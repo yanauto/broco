@@ -2,7 +2,7 @@
 
 [English](README.md) · 中文
 
-> 国内下载更快：[yan-auto.me/zh/downloads/opus-manager](https://yan-auto.me/zh/downloads/opus-manager/)
+> 国内下载更快：[yanauto.me/zh/downloads/opus-manager](https://yanauto.me/zh/downloads/opus-manager/)
 
 **无人托管。** 把活交出去，人就可以走开。
 
