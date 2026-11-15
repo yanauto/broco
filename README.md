@@ -2,7 +2,7 @@
 
 English · [中文](README.zh-CN.md)
 
-> 国内下载 (China mirror): [yan-auto.me/zh/downloads/opus-manager](https://yan-auto.me/zh/downloads/opus-manager/)
+> 国内下载 (China mirror): [yanauto.me/zh/downloads/opus-manager](https://yanauto.me/zh/downloads/opus-manager/)
 
 **Unattended.** Hand the work over and walk away.
 
