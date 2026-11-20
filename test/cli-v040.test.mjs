@@ -257,7 +257,7 @@ test('done --result pass|rework on error/stopped tickets succeeds; bare done sti
   assert.equal(passResult.outcomeReason, 'deliverable verified complete')
   assert.equal(passResult.status, 'done')
 
-  await h.json('say', 'stop-ticket', 'will stop', '--bg')
+  await h.json('say', 'stop-ticket', 'hold', '--bg')
   await h.cli('stop', 'stop-ticket')
   await assert.rejects(h.cli('done', 'stop-ticket'), /Only tickets in review/)
   const reworkResult = await h.json('done', 'stop-ticket', '--result', 'rework', '--why', 'partial output reviewed')

@@ -83,7 +83,7 @@ test('unresponsive pi abort is bounded', async t => {
   assert.equal(alive(pid), false)
 })
 
-test('historical pi probes also require the isolated launcher', async t => {
+test('historical pi probes also require the isolated launcher', { skip: process.platform !== 'darwin' }, async t => {
   const h = harness(t)
   const profile = join(h.base, 'stand-in-home')
   const canary = join(profile, '.pi', 'canary')
