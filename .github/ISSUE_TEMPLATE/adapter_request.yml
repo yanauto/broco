@@ -1,0 +1,50 @@
+name: Worker adapter request
+description: Request a built-in worker adapter or preset for another AI coding CLI
+labels:
+  - adapter
+body:
+  - type: markdown
+    attributes:
+      value: Built-in adapters wrap official local CLIs over subprocesses with stdin prompt passing, explicit session ID resume, and structured output. You can already test new CLIs immediately via custom templates in `broco ui` Settings.
+  - type: input
+    id: cli_name
+    attributes:
+      label: CLI name and official documentation URL
+      placeholder: example-cli — https://example.com/docs/cli
+    validations:
+      required: true
+  - type: textarea
+    id: invocation
+    attributes:
+      label: Non-interactive new session and resume commands
+      description: Exact flags to run one headless turn and resume by explicit session ID.
+      placeholder: |
+        New: example-cli --json --prompt -
+        Resume: example-cli --json --resume <session_id> --prompt -
+    validations:
+      required: true
+  - type: dropdown
+    id: output_format
+    attributes:
+      label: Machine-readable output format
+      options:
+        - JSONL streaming events
+        - Single JSON object
+        - Plain text
+        - Other
+    validations:
+      required: true
+  - type: checkboxes
+    id: capabilities
+    attributes:
+      label: Supported CLI features
+      options:
+        - label: Accepts prompt over stdin (no prompt in argv/ps)
+        - label: Exposes a live quota or usage command
+        - label: Supports explicit model and effort flags
+        - label: Supports direct image or media attachments in headless mode
+  - type: textarea
+    id: notes
+    attributes:
+      label: Sample output and notes
+      description: Optional redacted sample JSON/JSONL output or custom template trial results.

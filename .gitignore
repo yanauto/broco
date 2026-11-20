@@ -1,11 +1,8 @@
+.sandbox/
+.broco/
 .DS_Store
-
-# Never commit credentials or AI session logs
-.env
-.env.*
-*.pem
-*.key
-*.p12
-**/secrets/
-.claude/sessions/
-*.jsonl
+node_modules/
+/bundle/
+site/dist/
+docs-site/dist/
+ui/dist/

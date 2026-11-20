@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://broco.yanauto.me/docs/
+    about: Read installation, worker setup, roster, and CLI command guides.
+  - name: Q&A and Workflows
+    url: https://github.com/yanauto/broco/discussions
+    about: Ask usage questions or share cross-vendor workflows.

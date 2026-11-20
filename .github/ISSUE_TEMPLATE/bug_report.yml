@@ -1,0 +1,62 @@
+name: Bug report
+description: Report a bug in broco CLI, runner, worker adapter, or local board
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Please redact any secrets or private repo details before submitting.
+  - type: input
+    id: version
+    attributes:
+      label: broco version
+      description: Output of `broco --version`
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: OS and Node.js version
+      description: Output of `uname -srm && node --version`
+      placeholder: Darwin arm64 · v24.x.x
+    validations:
+      required: true
+  - type: dropdown
+    id: host
+    attributes:
+      label: Host coding agent
+      options:
+        - Claude Code
+        - Codex
+        - Cursor
+        - Antigravity
+        - OpenCode
+        - Terminal / other
+    validations:
+      required: true
+  - type: textarea
+    id: status
+    attributes:
+      label: Output of `broco status --json`
+      description: Run `broco status --json` and paste the JSON output here.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Exact commands or prompt flow that triggered the issue.
+      placeholder: |
+        1. Run `broco ...`
+        2. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual behavior
+      description: What you expected to happen and what happened instead (include relevant error output).
+    validations:
+      required: true

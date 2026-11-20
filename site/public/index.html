@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <script>(function(){try{var t=localStorage.getItem('broco-theme');document.documentElement.dataset.theme=t==='dark'?'dark':'light';}catch(e){document.documentElement.dataset.theme='light';}})();</script>
+  <title>broco · Let your harnesses work together.</title>
+  <meta name="description" content="Let the coding agent in your current harness collaborate with the other agents on your machine — Claude Code, Codex, Cursor, Antigravity, OpenCode, and Pi. Parallel git worktrees, cross-vendor review, and quota-aware routing.">
+  <link rel="canonical" href="https://broco.yanauto.me/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="broco">
+  <meta property="og:url" content="https://broco.yanauto.me/">
+  <meta property="og:title" content="broco · Let your harnesses work together.">
+  <meta property="og:description" content="Cross-harness collaboration CLI for Claude Code, Codex, Cursor, Antigravity, OpenCode, and Pi. Local official CLIs, isolated git worktrees, blind cross-vendor review, Apache-2.0.">
+  <meta property="og:image" content="https://broco.yanauto.me/assets/broco-social-preview-1280x640.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:image:alt" content="broco 16-bit pixel broccoli mascot wearing a yellow hard hat: Let your harnesses work together.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="assets/broco-favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="assets/broco-favicon-192.png">
+  <link rel="stylesheet" href="guide-assets/base.css">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="page.js"></script>
+</head>
+<body>
+<header class="mast">
+  <div class="wrap nav">
+    <div class="brand-group">
+      <a class="brand" href="./" aria-label="broco">
+        <img class="mascot-px" src="assets/broco-foreman-256.png" width="28" height="28" alt="">
+        <span>broco</span>
+      </a>
+      <a class="ver-pill" href="changelog/" data-route="changelog">v1.0.0</a>
+    </div>
+    <nav class="top-nav" aria-label="Main">
+      <a href="#under-the-hood" data-zh="原理">How it works</a>
+      <a href="#install" data-zh="安装">Install</a>
+      <a href="docs/" data-route="docs" data-zh="文档">Docs</a>
+      <a href="https://github.com/yanauto/broco">GitHub ↗</a>
+      <span class="separator" aria-hidden="true"></span>
+      <div class="nav-controls">
+        <button class="nav-btn" id="theme-toggle" type="button" aria-label="Switch to Night Shift dark theme">
+          <svg class="theme-icon-sun" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M12.6 3.4l-1.1 1.1M4.5 11.5l-1.1 1.1"/></svg>
+          <svg class="theme-icon-moon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.2 10.2A5.5 5.5 0 0 1 5.8 2.8a5.5 5.5 0 1 0 7.4 7.4Z"/></svg>
+        </button>
+        <button class="nav-btn" id="language" type="button" lang="zh-CN" aria-label="切换到中文">中文</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="wrap hero">
+    <div class="hero-copy">
+      <div class="hero-eyebrow">
+        <span class="eyebrow-main" data-zh="跨 HARNESS 协作 · APACHE-2.0">CROSS-HARNESS COLLABORATION · APACHE-2.0</span>
+        <span class="eyebrow-sub" data-zh="原 opus-manager">Formerly opus-manager</span>
+      </div>
+      <h1>
+        <span data-zh="不同 harness 里的 AI，">Let your harnesses</span>
+        <span class="hero-accent" data-zh="一起干活。">work together.</span>
+      </h1>
+      <p class="hero-lede" data-zh="留在你此刻正在用的 harness 里，直接叫本机其他 AI 一起干活。各自拉独立 worktree 并行改代码、换另一家模型盲审 diff，主力快撞额度时顺手交接，全程复用本机已登录的官方 CLI。">Stay in whichever coding agent you already have open, and delegate to the rest on your machine. Run parallel git worktrees, ask another model family for a cold diff review, and route around 5-hour quota limits using your existing logins.</p>
+      <div class="hero-cmd on-dark">
+        <span class="cmd-prompt" aria-hidden="true">$</span>
+        <code id="hero-command">npm i -g broco &amp;&amp; broco setup</code>
+        <button class="keycap keycap-brand cmd-copy-btn" id="hero-copy" type="button" data-zh="复制">Copy</button>
+      </div>
+      <div class="hero-aux">
+        <a class="aux-link" href="docs/" data-route="docs"><span data-zh="阅读文档">Read docs</span> <span aria-hidden="true">→</span></a>
+        <span class="aux-dot" aria-hidden="true">·</span>
+        <a class="aux-link" href="https://github.com/yanauto/broco">GitHub <span aria-hidden="true">↗</span></a>
+        <span class="aux-dot" aria-hidden="true">·</span>
+        <span class="aux-env">macOS &amp; Linux · Node 24+</span>
+      </div>
+    </div>
+
+    <div class="dispatch-console on-dark" aria-label="Cross-harness dispatch preview" data-zh-aria="跨 harness 协作台演示">
+      <div class="console-bar">
+        <div class="console-bar-left">
+          <span class="console-dot" aria-hidden="true"></span>
+          <span class="console-title" data-zh="跨 HARNESS 协作台">CROSS-HARNESS DISPATCH</span>
+        </div>
+        <span class="console-cmd-tag tnum">broco roster · 4 CLIs</span>
+      </div>
+
+      <div class="console-top">
+        <div class="console-telemetry">
+          <div class="foreman-callout">
+            <span class="callout-mark" aria-hidden="true">▸</span>
+            <code id="foreman-note">codex 89% -&gt; hand off to agy</code>
+          </div>
+          <div class="quota-list" role="list" aria-label="Harness quotas" data-zh-aria="各 harness 实时额度">
+            <div class="quota-row" role="listitem">
+              <span class="q-name">codex</span>
+              <span class="broco-meter is-danger" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+              <span class="q-stat tnum">5h 89%</span>
+              <span class="q-tag is-danger">avoid</span>
+            </div>
+            <div class="quota-row" role="listitem">
+              <span class="q-name">agy</span>
+              <span class="broco-meter is-good" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+              <span class="q-stat tnum">5h 4%</span>
+              <span class="q-tag is-good">plentiful</span>
+            </div>
+            <div class="quota-row" role="listitem">
+              <span class="q-name">claude</span>
+              <span class="broco-meter is-neutral" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+              <span class="q-stat tnum">0 err</span>
+              <span class="q-tag is-neutral">ready</span>
+            </div>
+            <div class="quota-row" role="listitem">
+              <span class="q-name">pi:deepseek</span>
+              <span class="broco-meter is-neutral" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+              <span class="q-stat tnum">0 err</span>
+              <span class="q-tag is-neutral">ready</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="foreman-dock">
+          <div class="foreman-frame">
+            <img class="mascot-px foreman-img" src="assets/broco-foreman-256.png" width="116" height="116" alt="broco 16-bit pixel broccoli mascot wearing a yellow hard hat">
+          </div>
+          <span class="foreman-badge">BROCO · v1.0</span>
+        </div>
+      </div>
+
+      <div class="console-bottom">
+        <div class="scenario-tabs" role="tablist" aria-label="Collaboration scenarios" data-zh-aria="协作场景">
+          <button class="keycap keycap-dark scenario-tab" type="button" role="tab" id="tab-quota" aria-controls="panel-dispatch" aria-selected="true" data-scene="quota">
+            <span class="tab-num tnum">01</span>
+            <span data-zh="任务委派">Delegate</span>
+          </button>
+          <button class="keycap keycap-dark scenario-tab" type="button" role="tab" id="tab-review" aria-controls="panel-dispatch" aria-selected="false" data-scene="review">
+            <span class="tab-num tnum">02</span>
+            <span data-zh="跨模型盲审">Blind Review</span>
+          </button>
+          <button class="keycap keycap-dark scenario-tab" type="button" role="tab" id="tab-map" aria-controls="panel-dispatch" aria-selected="false" data-scene="map">
+            <span class="tab-num tnum">03</span>
+            <span data-zh="并行分片">Map Shards</span>
+          </button>
+        </div>
+
+        <div class="dispatch-stage" id="panel-dispatch" role="tabpanel" aria-labelledby="tab-quota">
+          <div class="stage-cmd" id="scene-cmd">$ broco say auth-fix "Fix verifyToken expiry" --worker agy --worktree --bg</div>
+          <div class="stage-lines" id="scene-lines">
+            <div class="stage-line"><span class="sl-mark">▸</span><span>from: claude -&gt; global allowlist (~/.broco/)</span></div>
+            <div class="stage-line"><span class="sl-mark is-warn">▸</span><span>roster: codex 5h 89% (avoid) → selected agy (5h 4% plentiful)</span></div>
+            <div class="stage-line"><span class="sl-mark is-good">✓</span><span>ticket #43 running in worktree broco/auth-fix · via stdin</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="compat-strip" aria-label="Harness compatibility" data-zh-aria="Harness 兼容性">
+    <div class="wrap compat-inner">
+      <div class="compat-hosts">
+        <span class="compat-label" data-zh="互通 Harness：">Works across:</span>
+        <span class="compat-list">Claude Code <i aria-hidden="true">·</i> Codex <i aria-hidden="true">·</i> Cursor <i aria-hidden="true">·</i> Antigravity <i aria-hidden="true">·</i> OpenCode <i aria-hidden="true">·</i> Pi</span>
+      </div>
+      <span class="compat-pill" data-zh="一份开放 SKILL.md · 直连本机官方 CLI">One open SKILL.md · local official CLIs</span>
+    </div>
+  </section>
+
+  <section class="wrap section" id="under-the-hood">
+    <div class="section-head">
+      <p class="section-kicker"><span class="tnum">01</span> / <span data-zh="协作原理">HOW IT WORKS</span></p>
+      <h2 data-zh="本机直连、分支隔离、交接可查">Local processes, isolated branches, clear handoffs.</h2>
+    </div>
+
+    <div class="hood-grid">
+      <div class="hood-rail" role="tablist" aria-label="Architecture proofs" data-zh-aria="机制切换">
+        <button class="hood-tab" type="button" role="tab" id="hood-tab-isolation" aria-controls="hood-panel-isolation" aria-selected="true" data-hood="isolation">
+          <span class="hood-num tnum">01</span>
+          <span class="hood-tab-body">
+            <strong data-zh="本机官方 CLI 直连">Local CLI Dispatch</strong>
+            <span data-zh="直接以隔离本地子进程的方式，调用你电脑上已登录的官方 CLI。">Runs the signed-in official CLIs already on your machine as isolated local subprocesses.</span>
+          </span>
+        </button>
+        <button class="hood-tab" type="button" role="tab" id="hood-tab-review" aria-controls="hood-panel-review" aria-selected="false" data-hood="review">
+          <span class="hood-num tnum">02</span>
+          <span class="hood-tab-body">
+            <strong data-zh="Worktree 隔离与跨模型盲审">Worktree &amp; Blind Review</strong>
+            <span data-zh="协作者在独立 git worktree 里改代码；你可以自己看 diff，也可以交给另一家模型独立盲审。">Each collaborator edits in its own git worktree; review the diff yourself or hand it to another vendor cold.</span>
+          </span>
+        </button>
+        <button class="hood-tab" type="button" role="tab" id="hood-tab-board" aria-controls="hood-panel-board" aria-selected="false" data-hood="board">
+          <span class="hood-num tnum">03</span>
+          <span class="hood-tab-body">
+            <strong data-zh="可选本地看板（broco ui）">Optional Local Board (broco ui)</strong>
+            <span data-zh="一屏查看各个 harness 的实时额度、在跑任务、报错工单和关联审查结果。">Track live quotas across harnesses, follow active runs, spot failed tickets, and jump straight to linked reviews.</span>
+          </span>
+        </button>
+      </div>
+
+      <div class="hood-stage">
+        <div class="stage-chrome on-dark">
+          <span class="stage-path tnum" id="hood-path">~/.broco/ · local official CLI processes</span>
+          <span class="stage-badge" id="hood-badge" data-zh="进程调度">DISPATCH</span>
+        </div>
+
+        <div class="hood-panel" id="hood-panel-isolation" role="tabpanel" aria-labelledby="hood-tab-isolation">
+          <div class="iso-diagram-wrap">
+            <svg class="iso-svg" viewBox="0 0 660 228" role="img" aria-label="Host agent sends prompt via stdin into broco runner which dispatches official local CLIs with BROCO_IN_WORKER=1 and keeps state in ~/.broco/" data-zh-aria="宿主 Agent 通过 stdin 管道把任务交给 broco runner，再用 BROCO_IN_WORKER=1 派发至本机官方 CLI 子进程，状态统一保存在 ~/.broco/">
+              <rect x="14" y="42" width="144" height="130" rx="4" class="svg-box"/>
+              <text x="26" y="64" class="svg-kicker">HOST AGENT</text>
+              <text x="26" y="87" class="svg-title">Claude · Codex</text>
+              <text x="26" y="106" class="svg-title">Cursor · Agy</text>
+              <text x="26" y="125" class="svg-title">OpenCode · Pi</text>
+              <text x="26" y="154" class="svg-muted">reads SKILL.md</text>
+
+              <line x1="158" y1="107" x2="236" y2="107" class="svg-wire-accent"/>
+              <polygon points="236,103 244,107 236,111" class="svg-arrow-accent"/>
+              <text x="198" y="96" text-anchor="middle" class="svg-label-accent">stdin</text>
+              <text x="198" y="124" text-anchor="middle" class="svg-muted">private pipe</text>
+
+              <rect x="246" y="34" width="174" height="146" rx="4" class="svg-box-strong"/>
+              <rect x="246" y="34" width="174" height="4" class="svg-bar-green"/>
+              <text x="260" y="60" class="svg-kicker-green">BROCO RUNNER</text>
+              <text x="260" y="82" class="svg-title">Quota + FIFO Queue</text>
+              <text x="260" y="102" class="svg-muted">state: ~/.broco/</text>
+              <text x="260" y="120" class="svg-muted">repo untouched</text>
+              <rect x="258" y="136" width="150" height="28" rx="3" class="svg-guard-box"/>
+              <text x="333" y="154" text-anchor="middle" class="svg-guard-text">BROCO_IN_WORKER=1</text>
+
+              <path d="M420 74 H454 V46 H482" class="svg-wire" fill="none"/>
+              <polygon points="482,42 490,46 482,50" class="svg-arrow"/>
+              <line x1="420" y1="107" x2="482" y2="107" class="svg-wire-accent"/>
+              <polygon points="482,103 490,107 482,111" class="svg-arrow-accent"/>
+              <path d="M420 140 H454 V168 H482" class="svg-wire" fill="none"/>
+              <polygon points="482,164 490,168 482,172" class="svg-arrow"/>
+
+              <rect x="492" y="20" width="154" height="52" rx="4" class="svg-box"/>
+              <text x="504" y="42" class="svg-title">claude</text>
+              <text x="504" y="59" class="svg-muted">stream-json · local</text>
+
+              <rect x="492" y="81" width="154" height="52" rx="4" class="svg-box-active"/>
+              <text x="504" y="103" class="svg-title">agy</text>
+              <text x="504" y="120" class="svg-muted">multimodal · 5h 4%</text>
+
+              <rect x="492" y="142" width="154" height="52" rx="4" class="svg-box"/>
+              <text x="504" y="164" class="svg-title">codex / cursor / pi</text>
+              <text x="504" y="181" class="svg-muted">official local CLIs</text>
+
+              <text x="333" y="214" text-anchor="middle" class="svg-muted">Official local CLIs · Your existing logins · State kept in ~/.broco/</text>
+            </svg>
+          </div>
+          <div class="iso-facts">
+            <div class="iso-fact">
+              <strong data-zh="stdin 传题">stdin prompts</strong>
+              <span data-zh="任务正文经标准输入管道传递，不进进程命令行参数。">Prompts stream through standard input so task text stays out of process listings.</span>
+            </div>
+            <div class="iso-fact">
+              <strong data-zh="防递归保护">Recursion guard</strong>
+              <span data-zh="子进程自带 BROCO_IN_WORKER=1，确保协作者专注完成当前任务，避免嵌套派单。">Child runs carry BROCO_IN_WORKER=1 so workers finish their task cleanly.</span>
+            </div>
+            <div class="iso-fact">
+              <strong data-zh="仓库保持干净">Clean git tree</strong>
+              <span data-zh="默认把工单与锁文件放在 ~/.broco/，项目目录保持原样。">Default mode keeps tickets and locks in ~/.broco/, leaving your repo working tree untouched.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hood-panel on-dark review-panel" id="hood-panel-review" role="tabpanel" aria-labelledby="hood-tab-review" hidden>
+          <div class="term-proof">
+            <div class="tp-cmd">$ broco diff auth-fix --stat</div>
+            <pre class="tp-out tnum"> src/auth/verify.ts | 34 <span class="diff-add">+++++++++++++++++++++++++</span><span class="diff-del">---------</span>
+ test/auth.test.ts  | 19 <span class="diff-add">+++++++++++++++++++</span>
+ 2 files changed, 44 insertions(+), 9 deletions(-)</pre>
+          </div>
+          <div class="term-proof">
+            <div class="tp-cmd">$ broco review auth-fix --bg &amp;&amp; broco wait auth-fix-review</div>
+            <div class="review-verdict">
+              <div class="rv-head">
+                <span class="rv-badge">PASS</span>
+                <span class="rv-meta tnum">reviewer: <b>claude</b> (auto-selected ≠ agy) · 18.4s</span>
+              </div>
+              <p class="rv-body" data-zh="已独立核对 main..broco/auth-fix 的全部改动：过期边界含 30s 时钟偏差容错，负值 exp 正常拒绝，测试通过。可直接合并并运行 broco clean auth-fix --delete-branch 收尾。">Verified main..broco/auth-fix: 30s clock-skew tolerance covered, negative exp rejected, tests pass. Ready to merge and run broco clean auth-fix --delete-branch.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="hood-panel on-dark board-replica-wrap" id="hood-panel-board" role="tabpanel" aria-labelledby="hood-tab-board" hidden>
+          <div class="ui-topbar">
+            <div class="ui-tb-left">
+              <img class="mascot-px" src="assets/broco-foreman-256.png" width="20" height="20" alt="">
+              <span class="ui-tb-brand">broco</span>
+              <span class="ui-tb-sep">/</span>
+              <span class="ui-tb-proj">shop-api</span>
+            </div>
+            <div class="ui-tb-telemetry tnum">
+              <span class="ui-chip"><b>codex</b> <span class="broco-meter is-sm is-danger" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span> 89%</span>
+              <span class="ui-chip"><b>agy</b> <span class="broco-meter is-sm is-good" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span> 4%</span>
+              <span class="ui-chip"><b>claude</b> <span class="broco-meter is-sm is-neutral" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span> ready</span>
+            </div>
+          </div>
+
+          <div class="ui-cols">
+            <div class="ui-col is-empty">
+              <div class="ui-col-head"><span data-zh="排队">Queued</span><span class="ui-cnt tnum">0</span></div>
+              <div class="ui-empty-rail">—</div>
+            </div>
+            <div class="ui-col is-empty">
+              <div class="ui-col-head"><span data-zh="在跑">Working</span><span class="ui-cnt tnum">0</span></div>
+              <div class="ui-empty-rail">—</div>
+            </div>
+            <div class="ui-col is-active">
+              <div class="ui-col-head"><i class="ui-dot is-review"></i><span data-zh="待验收">Review</span><span class="ui-cnt tnum">3</span></div>
+              <div class="ui-card is-error">
+                <div class="ui-card-top">
+                  <span class="ui-id tnum">#45</span>
+                  <span class="ui-err-pill tnum">exit 143 · OOM</span>
+                </div>
+                <strong class="ui-card-title" data-zh="解析大体积支付回调">Parse large webhook payload</strong>
+                <div class="ui-card-foot tnum"><span>⎇ webhook-stream</span><span>pi:deepseek</span></div>
+              </div>
+              <div class="ui-linked-group">
+                <div class="ui-card is-linked">
+                  <div class="ui-card-top">
+                    <span class="ui-id tnum">#43</span>
+                    <span class="ui-rev-pill" data-zh="有盲审">reviewed</span>
+                  </div>
+                  <strong class="ui-card-title" data-zh="修复 verifyToken 过期校验">Fix verifyToken expiry</strong>
+                  <div class="ui-card-foot tnum"><span>⎇ auth-fix · +2f</span><span>agy/pro</span></div>
+                </div>
+                <div class="ui-link-wire" aria-hidden="true"><span>↳ linked review</span></div>
+                <div class="ui-card is-linked is-review-child">
+                  <div class="ui-card-top">
+                    <span class="ui-id tnum">↳ #44</span>
+                    <span class="ui-pass-pill">PASS</span>
+                  </div>
+                  <strong class="ui-card-title" data-zh="跨模型盲审 #43 diff">Blind review #43 diff</strong>
+                  <div class="ui-card-foot tnum"><span>git diff · 18s</span><span>claude/sonnet</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="ui-col is-active">
+              <div class="ui-col-head"><i class="ui-dot is-done"></i><span data-zh="完成">Done</span><span class="ui-cnt tnum">24</span></div>
+              <div class="ui-done-card">
+                <div class="ui-done-row1"><strong data-zh="补齐时钟偏差回归测试">Add clock-skew tests</strong><span class="ui-done-check" aria-hidden="true">✓</span></div>
+                <div class="ui-done-row2 tnum">⎇ clock-skew · +2f · 99.4% · claude/sonnet · 12m</div>
+              </div>
+              <div class="ui-done-card">
+                <div class="ui-done-row1"><strong data-zh="加固限流存储分片">Harden rate-limit shard</strong><span class="ui-done-check" aria-hidden="true">✓</span></div>
+                <div class="ui-done-row2 tnum">⎇ rate-limit · +1f · 100% · agy/pro · 1h</div>
+              </div>
+              <div class="ui-done-card">
+                <div class="ui-done-row1"><strong data-zh="审计日志流式导出">Stream audit log export</strong><span class="ui-done-check" aria-hidden="true">✓</span></div>
+                <div class="ui-done-row2 tnum">⎇ audit-log · +3f · 98.1% · pi:deepseek · 2h</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage-foot">
+          <p id="hood-caption" data-zh="每个协作者都以本机子进程复用你现有的 CLI 登录，运行状态统一留在仓库之外。">Every worker runs as a local child process under your existing CLI login, with task state kept outside your repo.</p>
+          <a class="stage-doc-link" id="hood-doc-link" href="docs/allowlist/"><span data-zh="查看策略与隔离文档">Policy &amp; isolation guide</span> <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="setup-band" id="install">
+    <div class="wrap setup-grid">
+      <div class="setup-copy">
+        <p class="section-kicker"><span class="tnum">02</span> / <span data-zh="快速上手">GET STARTED</span></p>
+        <h2 data-zh="两行命令，连起本机所有 harness">Two commands to connect your harnesses.</h2>
+        <p class="setup-desc" data-zh="需要 macOS 或 Linux、Node.js 24+，以及至少两个本机已登录的编程 CLI。broco setup 会探测已安装的 harness，让你确认允许协作的名单、查看实时额度，并把 broco Skill 装进本机各宿主目录。">Requires macOS or Linux, Node.js 24+, and two or more signed-in coding CLIs. broco setup detects installed harnesses, lets you confirm which ones can collaborate, prints live quotas, and installs the broco skill into your local hosts.</p>
+        <div class="trigger-card">
+          <img class="mascot-px" src="assets/broco-foreman-256.png" width="52" height="52" alt="">
+          <div>
+            <p class="trigger-label" data-zh="装完回到当前 harness，直接说人话">Then ask your current agent in plain language</p>
+            <p class="trigger-quote" data-zh="“看看哪家额度宽裕，拉个 worktree 修好 verifyToken() 过期问题，再叫另一家模型盲审一下 diff。”">“See which harness has quota headroom, fix the verifyToken() expiry bug in a worktree, then have another vendor review the diff.”</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="setup-box">
+        <div class="seg-tabs" role="tablist" aria-label="Setup mode" data-zh-aria="安装模式">
+          <button class="keycap seg-tab" type="button" role="tab" id="mode-l0" aria-controls="setup-terminal" aria-selected="true" data-mode="l0" data-zh="全局（L0）">Global (L0)</button>
+          <button class="keycap seg-tab" type="button" role="tab" id="mode-l1" aria-controls="setup-terminal" aria-selected="false" data-mode="l1" data-zh="项目级（L1）">Per-repo (L1)</button>
+          <button class="keycap seg-tab" type="button" role="tab" id="mode-migrate" aria-controls="setup-terminal" aria-selected="false" data-mode="migrate" data-zh="从 cc-bro 迁移">Upgrade from cc-bro</button>
+        </div>
+
+        <div class="setup-terminal on-dark" id="setup-terminal" role="tabpanel" aria-labelledby="mode-l0">
+          <div class="st-bar">
+            <span class="st-label">TERMINAL · ~/.broco/</span>
+            <button class="keycap keycap-dark st-copy" id="setup-copy" type="button" data-zh="复制命令">Copy</button>
+          </div>
+          <pre><code id="setup-commands">npm install -g broco
+broco setup</code></pre>
+        </div>
+
+        <div class="fs-disclosure">
+          <span class="fs-tag" data-zh="写入位置">FILES WRITTEN</span>
+          <p id="setup-note" data-zh="仅写入 ~/.broco/、~/.agents/skills/broco/ 以及本机已检测到的宿主 skills 目录（Claude Code、Codex、Antigravity、Cursor、OpenCode、Pi），项目仓库保持原样。">Writes to ~/.broco/, ~/.agents/skills/broco/, and detected local harness skill folders (Claude Code, Codex, Antigravity, Cursor, OpenCode, Pi). Your repo stays untouched.</p>
+        </div>
+        <span class="sr" aria-live="polite" id="notice"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap section" id="in-practice">
+    <div class="section-head">
+      <p class="section-kicker"><span class="tnum">03</span> / <span data-zh="常见协作时刻">IN PRACTICE</span></p>
+      <h2 data-zh="什么时候让它们一起干活">When two harnesses beat one</h2>
+    </div>
+
+    <div class="ledger" role="list">
+      <div class="ledger-row" role="listitem">
+        <div class="ledger-no"><span class="ledger-num tnum" aria-hidden="true">01</span><span data-zh="写完代码，换一家盲审">Cross-vendor code review</span></div>
+        <p class="ledger-alt" data-zh="主力 harness 改完代码后，直接把 git diff 交给另一家模型独立审读，只看真实改动，更容易挑出边界漏洞和回归风险。">Once your main harness finishes a patch, hand the git diff to a different model family cold, with fresh eyes on the diff alone.</p>
+      </div>
+      <div class="ledger-row" role="listitem">
+        <div class="ledger-no"><span class="ledger-num tnum" aria-hidden="true">02</span><span data-zh="主力快撞限额，顺手接力">Quota-aware handoff</span></div>
+        <p class="ledger-alt" data-zh="当前主力接近 5 小时限额时，把补测试、重构等任务顺手交给余量充足的另一个 harness，手头进度不断档。">When your primary CLI approaches its 5-hour cap, send test fixes or refactors to another signed-in harness with headroom and keep your session moving.</p>
+      </div>
+      <div class="ledger-row" role="listitem">
+        <div class="ledger-no"><span class="ledger-num tnum" aria-hidden="true">03</span><span data-zh="借用另一家的模态与专长">Borrow another harness’s strengths</span></div>
+        <p class="ledger-alt" data-zh="留在当前终端里，遇到截图、PDF、音视频分析或特定模型强项时，随手交给 Claude、Gemini、Codex、Cursor 或 Pi 里最顺手的那一个。">Stay in your terminal while sending screenshots, PDFs, audio, video, or model-specific work to whichever local CLI fits best across Claude, Gemini, Codex, Cursor, and Pi.</p>
+      </div>
+      <div class="ledger-row" role="listitem">
+        <div class="ledger-no"><span class="ledger-num tnum" aria-hidden="true">04</span><span data-zh="多文件任务，独立分支并行">Parallel worktree batches</span></div>
+        <p class="ledger-alt" data-zh="批量审计、多模块迁移或重复改造，拆成多个独立 git worktree 并行推进，不打断主会话的节奏。">Fan out repetitive audits, migrations, or multi-module edits in isolated git worktrees so several tasks move forward while you stay focused in your main session.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap site-foot">
+  <div class="foot-left">
+    <img class="mascot-px" src="assets/broco-foreman-256.png" width="22" height="22" alt="">
+    <span class="foot-brand">broco</span>
+    <span class="foot-meta tnum">v1.0.0 · Apache-2.0</span>
+  </div>
+  <div class="foot-links">
+    <a href="docs/" data-route="docs" data-zh="文档">Docs</a>
+    <a href="changelog/" data-route="changelog" data-zh="更新日志">Changelog</a>
+    <a href="https://github.com/yanauto/broco">GitHub ↗</a>
+    <a href="https://www.npmjs.com/package/broco">npm ↗</a>
+  </div>
+</footer>
+</body>
+</html>

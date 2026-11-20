@@ -1,153 +1,189 @@
-# Opus Manager
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/broco-readme-logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="assets/broco-readme-logo-light.png">
+    <img src="assets/broco-readme-logo-light.png" alt="broco — Let your harnesses work together." width="520">
+  </picture>
+</p>
 
-English · [中文](README.zh-CN.md)
+<p align="center">
+  Formerly <code>opus-manager</code> (v0.4) · Apache-2.0 · <a href="README.zh-CN.md">中文</a> · <a href="https://broco.yanauto.me/">Website</a> · <a href="https://broco.yanauto.me/docs/">Docs</a> · <a href="CHANGELOG.md">Changelog</a>
+</p>
 
-> 国内下载 (China mirror): [yanauto.me/zh/downloads/opus-manager](https://yanauto.me/zh/downloads/opus-manager/)
+**Let your harnesses work together.** Stay in whichever coding agent you already have open, and delegate to the rest on your machine — Claude Code, Codex, Cursor, Antigravity, OpenCode, and Pi. Run parallel git worktrees, ask another model family for a cold diff review, and route around 5-hour quota limits using your existing logins.
 
-**Unattended.** Hand the work over and walk away.
+## Get started
 
-A Claude Code skill that makes Claude the manager of your project instead of its typist. Claude plans the work as tickets, dispatches them to cheaper coding agents already on your machine, verifies the results itself, has a model from a different vendor review the code, and keeps going while you are gone.
+Requires macOS or Linux, Node.js 24+, and two or more coding CLIs you already signed into locally.
 
-![A real run of opus-manager, sped up](docs/demo.gif)
-
-*A real run. It took about 4 minutes; the GIF plays most of it at 20× speed. Claude writes the ticket, DeepSeek builds it, Claude reruns the checks and commits, GLM reviews, Claude checks each finding.*
-
-## Why
-
-### It keeps going while you're away
-
-Tell Claude what you want done and leave. It asks the questions it would otherwise interrupt you with before you go, then works down the queue: dispatch, accept, review, fix, next. Decisions it may not make alone go into a list for you, and it carries on with other tickets. When you are back, a short report tells you what works, what is waiting for you, and what it cost.
-
-Two real runs:
-
-- **A colleague's release day (a recruiting SaaS).** He left at 17:30. It kept going on its own until 22:28: 9 tickets through build → review by a second vendor → fix → release → live check, including 2 skipped reviews it caught and ran itself. He checked in once. A morning report came out at 08:30 the next day.
-- **The author's work project, overnight.** 00:23 to 07:45, 7.4 hours with no messages from him: Claude claimed 9 tickets and got 10 receipts back from workers.
-
-What can stop it: the computer going to sleep, a permission prompt nobody answers, and Claude's own usage limits. On a Pro plan, one busy morning used about 83% of a 5-hour window. When the limit is hit Claude stops; workers already started finish, and after the reset you tell it to continue.
-
-### Your Claude quota goes to judgment
-
-Claude (Opus in particular) is strongest at judgment: breaking work down, deciding what "done" means, and telling a real bug from a false alarm. Writing the implementation is where most tokens go, and cheaper models can do that part.
-
-With this skill, Claude's quota is spent on planning, acceptance and verification. The implementation runs on pay-per-use models. In the author's words: **a $20 Claude Pro plan starts to feel like the $200 Max plan.**
-
-### Why the manager never writes code
-
-Saving quota is only part of it. The bigger point is keeping Claude's context clean.
-
-When Claude writes code itself, its context fills up with code: files it opened, diffs, test logs, failed attempts. The plan, what "done" means, and why earlier decisions were made get pushed aside or compacted away.
-
-Here Claude only sees tickets, receipts, the diff of each ticket and review findings. The implementation happens in a separate CLI tool's session. So Claude keeps its view of the whole project and keeps making decisions: what comes next, whether a result is really done, which review findings are real bugs and which are false alarms.
-
-What that gets you:
-
-- **The project keeps moving.** A friend's project had been stuck for about two months on DeepSeek and GLM, then on GPT. With Claude managing and DeepSeek building, most of it moved forward in two days. One project, one data point.
-- **You can step away.** Claude plans, dispatches, verifies and sends fixes back on its own, as in the colleague's run above. You come back to the decisions that are actually yours.
-
-## Field numbers
-
-Each row is one day of real use. Small sample; your numbers will differ.
-
-| Setup | Result |
-|---|---|
-| A colleague (anonymous) hands a full working day to the skill | 20% of the weekly Claude Pro quota; about $5–6 on worker models |
-| Work project: DeepSeek builds, GLM reviews (both via `pi`) | DeepSeek: 3,617 model calls, ~808M tokens, ~$10.24. GLM review: 206 calls, ~$0.51 |
-| Recruiting SaaS launch sprint day: DeepSeek and GPT build, GLM reviews (all via `pi`) | DeepSeek: 3,528 calls, ~906M tokens, ~$10.5. GPT: 1,135 calls on a Codex subscription. GLM review: 283 calls, ~$0.9. About 12 tickets went through cross-vendor review. [Details](https://github.com/yanauto/opus-manager/issues/1) |
-| Author's app: Grok builds (`cursor-agent`), Gemini reviews (`agy`) | 13 tickets, 3 review rounds, 36 findings; Claude accepted and fixed 35, rejected 1 |
-
-**Over a longer stretch**: in 8 weeks (2026-08-02 to 09-28) the author dispatched 360 tickets across 13 repositories: 340 accepted, 12 dropped, and about one in ten needed a follow-up fix. Of the 227 tickets that recorded their worker, Grok built 131, DeepSeek 81 and Gemini 15. On one work project, Claude checked about 70 cross-vendor review findings one by one: about 61 held up and 4 did not.
-
-Worker models are billed per use, so they are not free. The saving is that Claude's quota stops going to implementation.
-
-Per-model notes on what to use each model for and what to watch out for: [Model field notes](docs/models.md).
-
-## How it works
-
-![How it works](docs/architecture-en.png)
-
-1. **Ticket.** Claude writes a ticket in `_tickets/open/`: the goal, the files that may change, acceptance commands, and why those commands matter.
-2. **Dispatch.** A dispatch script that Claude writes on first run moves the ticket to `_tickets/doing/` (the move is the lock), signs it with the real worker and model, and starts the worker headless. The worker runs detached from Claude's session, so a session restart does not stop it.
-3. **Receipt.** The worker writes `_receipts/<ticket>.receipt.md` with the exact commands it ran and their raw output.
-4. **Acceptance.** Claude reruns every acceptance command itself and checks the diff. A receipt is a claim, not evidence.
-5. **Cross-vendor code review.** A model from a different vendor reviews the change read-only and reports findings with file, line and evidence.
-6. **Verification.** Claude checks each finding against the code. Real ones go back as a fix ticket; wrong ones get a one-line reason. Accepted tickets move to `_tickets/done/`.
-
-Everything is plain Markdown in your repository: tickets, receipts, review reports, and Claude's verdicts.
-
-## First run
-
-The first time you use it in a project, Claude sets it up with you:
-
-- finds which AI CLIs are installed (`cursor-agent`, `agy` / `gemini`, `codex`, `pi`, `opencode`, `aider`, …) and reads their `--help` for headless, auto-approve, model and read-only options;
-- asks you, one question at a time, who builds, who reviews, which models to use, which tools may see your code, and whether workers may edit without asking;
-- writes a dispatch script and a review script for your shell, so every ticket is claimed, signed and started the same way;
-- runs a small trial ticket and saves the result to `_tickets/workers.md`.
-
-If you have no worker CLI yet, Claude explains the options (subscription-based or pay-per-use, where the privacy terms are) and installs the one you choose from its official source after you say yes. Sign-in and API keys stay with you.
-
-Claude does not make privacy, cost or permission decisions for you.
-
-## Requirements
-
-- [Claude Code](https://code.claude.com) (Pro is enough)
-- At least one other AI command-line tool, or let Claude install one on first run. The author recommends the open-source [pi](https://pi.dev) with an [OpenCode Go](https://opencode.ai/go) subscription: one subscription covers several model vendors, $10 a month when this was written
-
-## Install
-
-Easiest: open Claude Code and say
-
-> Install `skill/en/opus-manager` from https://github.com/yanauto/opus-manager as my personal skill.
-
-Or by hand:
-
-**macOS / Linux**
-
-```bash
-git clone https://github.com/yanauto/opus-manager.git
-mkdir -p ~/.claude/skills
-cp -R opus-manager/skill/en/opus-manager ~/.claude/skills/
+```sh
+npm install -g broco
+broco setup
 ```
 
-**Windows (PowerShell)**
+`broco setup` does four things in one pass:
 
-```powershell
-git clone https://github.com/yanauto/opus-manager.git
-New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude\skills" | Out-Null
-Copy-Item -Recurse opus-manager\skill\en\opus-manager "$env:USERPROFILE\.claude\skills\"
+1. Detects the coding harnesses already installed and signed in on your machine.
+2. Asks you once to confirm your global allowlist (never enables workers silently).
+3. Prints a live quota-aware roster immediately.
+4. Installs one open `SKILL.md` into `~/.agents/skills/broco/` and links or syncs it into your detected local hosts (**Claude Code**, **Codex**, **Cursor**, **Antigravity**, **OpenCode**, and **Pi** — linking `~/.pi/agent/skills/broco` and respecting `PI_CODING_AGENT_DIR`).
+
+Then go straight back to your current harness and ask in plain language:
+
+> See which harness has quota headroom, fix the `verifyToken()` expiry bug in a worktree, then have another vendor review the diff.
+
+**No per-repo `init` required (L0).** `broco` works in any directory right after `setup` using your global allowlist. Ticket state stays in `~/.broco/`, leaving your repository untouched unless you explicitly opt into per-project policy with `broco init`.
+
+## Symmetric collaboration
+
+Any host harness can delegate to any allowed worker — including calling `claude` itself from Codex, Cursor, Antigravity, OpenCode, or Pi.
+
+| Worker | Integration & Inputs | Follow-up during a turn |
+| --- | --- | --- |
+| `claude` | Native `claude -p --output-format stream-json` + `--resume` via stdin (`text`, `image`, `pdf` via `--add-dir` + `Read`; rejects `audio`/`video`) | Queues for the next turn |
+| `codex` | Native Codex app-server + live 5h/weekly quota (`text`, `image`, reported `audio`) | Injects when the turn accepts steering; otherwise queues |
+| `agy` | Native Antigravity CLI via stdin + `/usage` multi-group quotas (`text`, `image`, `audio`, `video`, `pdf`) | Queues for the next turn |
+| `cursor-agent` | Native Cursor CLI with structured events and session ID resume | Queues for the next turn |
+| `pi:<provider>` | pi RPC with explicit per-provider permission (`text`, `image`) | Injects when pi confirms delivery; otherwise queues |
+| `custom:<name>` | Trial-tested new-session and resume command templates | Queues; native step events and cache are unavailable |
+
+- **Official local CLIs using your existing logins.** `broco` spawns the official CLIs you already signed into as isolated local subprocesses, keeping state in `~/.broco/` without touching other CLIs' configs.
+- **Safe prompts and secret redaction.** Prompts stream over `stdin` so task text stays out of `ps` arguments, and secret patterns are redacted before worker streams are stored in SQLite.
+- **Recursion guard (`BROCO_IN_WORKER=1`).** Every worker process inherits `BROCO_IN_WORKER=1`; `broco` refuses nested worker-to-worker dispatch by default unless explicitly overridden with `--allow-nested`.
+
+## When two harnesses beat one
+
+- **Cross-vendor code review.** Once your main harness finishes a patch, hand the git diff to a different model family cold, with fresh eyes on the diff alone.
+- **Quota-aware handoff.** When your primary CLI approaches its 5-hour cap, send test fixes or refactors to another signed-in harness with headroom and keep your session moving.
+- **Borrow another harness’s strengths.** Stay in your terminal while sending screenshots, PDFs, audio, video, or model-specific work to whichever local CLI fits best across Claude, Gemini, Codex, Cursor, and Pi.
+- **Parallel worktree batches.** Fan out repetitive audits, migrations, or multi-module edits in isolated git worktrees so several tasks move forward while you stay focused in your main session.
+
+---
+
+## Agent CLI reference
+
+> Commands below are run by your agent via the skill — you don't need to memorize them.
+
+### Check health and live quotas
+
+```sh
+broco status --json
+broco roster --json
+broco roster --worker codex --json --full
 ```
 
-No git? On GitHub click Code → Download ZIP and copy `skill/en/opus-manager` to the same place.
+`status` checks runner health, active/queued tickets, batches, proxies, and cleanable worktrees without starting an offline daemon. `roster` reads permitted model families, login state, input capabilities, user notes, rules, and live quotas (`avoid`, `plentiful`, and secondary `agy` model-group alerts) over a shared 45s cache (`--refresh` forces a re-probe; `--global` inspects global defaults explicitly).
 
-Restart Claude Code afterwards.
+### Dispatch, wait, diff, cross-vendor review, and clean
 
-## Use
+```sh
+broco say auth-fix - --worker agy --worktree --bg --json <<'EOF'
+Fix the failing `verifyToken()` expiry test and cover `$REFRESH_TOKEN` edge cases.
+EOF
+broco wait auth-fix --json
+broco diff auth-fix --stat
+broco review auth-fix --bg --json
+broco wait auth-fix-review-... --json
+broco done auth-fix --result pass --why "Token expiry and refresh tests green."
+broco clean auth-fix --delete-branch
+```
 
-In your project, tell Claude Code:
+- **`say`** accepts inline text, `--file <path>`, or `stdin` (`-` or piped input) so multi-line markdown and backticks need no shell escaping. Reuse a name to continue its session; pick a new name to run in parallel. Use `--cwd DIR` to run in another directory while keeping permissions and tickets in the current project, `--attach FILE` for confirmed media, `--new-task` after `done`, and `--from OLD_NAME` to hand off cleanly when `contextWarning` fires at 60% of a model's context window.
+- **`wait`** is event-driven (0ms wakeup, no SQLite polling) and returns `reply`, `task`, `cwd`, `worktree`, `branch`, and `changedFiles`.
+- **`diff`** inspects tracked and untracked changes against the ticket's base commit.
+- **`review`** defaults to cross-vendor blind review: omitting `--by` automatically selects a permitted worker from a different vendor with available quota headroom (or pass `--by claude`, `--by codex`, etc. explicitly).
+- **`done` & `clean`** record outcomes (`pass`, `rework`, `fail`, `blocked`) and remove retained worktrees and branches safely (`--dry-run` previews first).
 
-> Use tickets: add remember-me to the login page.
+### Sharded batch fan-out with `map`
 
-"Manage this" or "hand it off to other models" also work.
+Apply one brief across many files or inputs (`<prefix>-1 .. <prefix>-N`) regulated by an isolated FIFO concurrency pool:
 
-To leave it running, say so:
+```sh
+broco map x-tag --brief-file brief.md --inputs shard-*.jsonl --worker agy --effort high --bg --json
+broco wait x-tag --json
+broco retry x-tag --bg --json
+broco show x-tag --status error,review --full --json
+broco done x-tag --result pass --why "All shards verified."
+broco clean x-tag --delete-branch
+```
 
-> I'm off for the evening. Run this unattended: fix the checkout bug, then add CSV export.
+`map` accepts `--brief`, `--brief-file <path|->`, `--input`, `--inputs`, `--inputs-file <path|->` (lines or JSON array), and `{input}`, `{index}`, `{count}`, `{name}` placeholders. `wait`, `show`, `retry`, `stop`, `done`, and `clean` all accept a batch prefix (`retry <prefix>` retries only failed or stopped shards).
 
-Claude agrees with you on what it may do without asking, writes the queue to `_tickets/queue.md`, and keeps a one-line-per-ticket log in `_receipts/progress.md` that you can read instead of asking how it is going.
+### Optional per-repo policy (L1 `init`)
 
-## Tip
+Only needed when a repository requires its own strict allowlist (for example blocking a specific vendor in a private repo), an independent concurrency cap, repo-specific rules, or explicit heavy manager mode:
 
-Let it run. Cutting in mid-task makes Claude stop and verify what you said, which costs quota. Speak up for real decisions; keep passing thoughts for later.
+```sh
+broco init --allow claude,codex,agy,pi:deepseek --default-worker agy --concurrency 4
+broco init --manager-mode
+broco uninit
+```
 
-## Status
+`init` writes `.broco/` and maintains a marked `<!-- broco:start -->` section in `AGENTS.md` by default without altering surrounding text (`--host` supports `auto|agents|claude|codex|cursor|agy|opencode|pi`). It touches `CLAUDE.md` only when the repo already has one or when `--host claude` is passed (`--no-agents-md` / `--no-claude-md` skip markers; `broco uninit` releases idle workers, unregisters the repo, and strips only the marked section). Project policy strictly overrides global defaults when present.
 
-- macOS: full workflow used daily.
-- Windows: installation and tool discovery confirmed by one user; a full ticket run is not yet confirmed.
-- Linux: expected to work, not yet tested.
+## Built for daily power use
 
-## Contributing
+### Agent-first settings and one-command undo
 
-Issues and PRs are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Your agent can adjust global or per-project settings directly via CLI. Every change takes effect on subsequent dispatches, writes an audit entry in your local timezone (configurable via `BROCO_TZ` or `TZ`), and prints a one-command undo:
 
-## License
+```sh
+broco set concurrency 6
+broco set default-worker agy
+broco allow claude,codex,agy --default-worker agy
+broco deny cursor-agent
+broco defaults agy --model gemini-4-argon --effort high
+broco note agy "High headroom plan; good for batch map jobs"
+broco rules --add "Run tests before finishing"
+broco hide codex gpt-5.6-sol
+broco audit --limit 10
+broco undo
+```
 
-MIT
+Open the local board anytime with `broco ui` (or `broco ui --no-open`; port auto-restores across restarts) to monitor live `map` progress bars, queue positions, multi-task histories, context warnings, and one-click **Undo**.
+
+### Loopback credential proxies
+
+Give a worker a temporary `127.0.0.1` URL that injects an auth header into specific upstream paths without exposing the secret to the worker process:
+
+```sh
+broco proxy-open --upstream https://api.example.com \
+  --path /v1/models --path /v1/chat/completions \
+  --header Authorization --value-env EXAMPLE_API_KEY --value-prefix 'Bearer ' \
+  --max-requests 150 --ttl 1800 --json
+broco proxy-list --json
+broco proxy-close PROXY_ID --json
+```
+
+Secrets live in runner memory only, bind strictly to `127.0.0.1`, reject `--path /` and 3xx redirects, and enforce path-segment prefixes and request/TTL caps.
+
+### Tracked task pass rates (`stats`)
+
+```sh
+broco stats --json
+broco stats --project . --json
+```
+
+Aggregates real per-task pass/rework/fail/blocked outcomes grouped by worker and model across projects.
+
+### Upgrading from `cc-bro` or `opus-manager`
+
+`broco` v1.0.0 is the continuation of `opus-manager` (v0.4) and `cc-bro`. After installing `broco`:
+
+1. Wait for any active work you want to preserve (`cc-bro status` if still installed).
+2. Run `broco shutdown` (cleanly stops legacy runners across older protocols and `~/.cc-bro` sockets) followed by `broco setup --migrate-cc-bro` (or `broco setup` for a fresh start).
+3. `broco setup --migrate-cc-bro` losslessly copies existing `~/.cc-bro/` state into `~/.broco/` while preserving your projects, settings, and ticket history without deleting `~/.cc-bro/`.
+
+See the [upgrade guide](docs-site/en/upgrade.md) for details.
+
+## Development
+
+From source:
+
+```sh
+npm ci --prefix ui
+npm run prepack
+npm test
+```
+
+[Apache-2.0 license](LICENSE)

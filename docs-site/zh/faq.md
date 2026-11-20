@@ -1,0 +1,39 @@
+# 常见问题
+
+快速解答关于安装、权限、额度与运行机制的常见问题。
+
+## 每个代码仓库都要跑一次 `broco init` 吗？
+
+不需要。跑完一次 `broco setup` 后，L0 模式在任意目录直接沿用全局允许名单——不往仓库塞隐藏目录，也不改 `CLAUDE.md` 或 `AGENTS.md`。只有特定仓库需要更严格名单、独立并发上限、项目规矩或 `--manager-mode` 时才按需运行 `broco init`（L1）。详见[全局与项目策略](allowlist.md)。
+
+## broco 如何与各家 CLI 认证？
+
+`broco` 以隔离本地子进程直接运行你已经登录好的官方 CLI，沿用各家原生的登录态与配置，无需额外 API Key 或中转代理。
+
+## 工人会递归再派给另一个工人造成无限套娃吗？
+
+默认不会。runner 启动任何工人子进程时都会强制注入 `BROCO_IN_WORKER=1`。若工人在内部再次调用 `broco say`、`map`、`review` 或 `retry`，`broco` 会默认拒绝嵌套派单（除非显式传入 `--allow-nested`）。
+
+## 工人明明登录了，为什么还是提示“未允许”？
+
+登录状态与放行权限相互独立。通过 `broco setup`（或 `broco allow`）显式确认名单，防止误派给未授权的 CLI。每个 `pi:<厂商>`（如 `pi:openai-codex`、`pi:deepseek`）都是独立 ID。
+
+## 实时额度是怎么读取的？
+
+按各 CLI 原生能力尽力读取：`codex`（`account/rateLimits/read`）与 `agy`（`/usage`）直接上报 5 小时与周额度（`avoid`、`plentiful` 及 `agy` 副组告警）。无额度接口的 CLI 标为 `unreported`，结合报错自动维护冷却状态（`recentProblem`）。
+
+## 时间显示按什么时区？
+
+`broco` 按 `BROCO_TZ` → `TZ` → 系统时区 → `UTC` 动态解析。如需固定显示时区，设置 `BROCO_TZ=Asia/Shanghai` 或其他 IANA 时区即可，CLI、审计记录与看板保持一致。
+
+## 关掉主 Agent 对话框，正在跑的工人会停吗？
+
+不会。本机 runner 独立继续执行在跑轮次与分片队列。重开任意对话或终端，用 `broco status`、`broco ls --active`、`broco show 名字 --compact` 或 `broco wait 名字` 即可接回；要终止某单用 `broco stop 名字`。
+
+## 为什么审查者看不到我未提交的改动？
+
+`--worktree` 从已提交的 `HEAD` 拉出独立工作区。先用 `broco diff 名字` 核对改动、等排队中的插话跑完，并在 `broco review` 期间保持该工作区稳定。详见[独立工作区与审查](review-worktree.md)。
+
+## 支持哪些平台与使用环境？
+
+`broco` 支持 macOS 与 Linux（Node.js 24+），适合在同一台电脑上装有两个及以上已登录编程 harness（Claude Code、Codex、Cursor、Antigravity、OpenCode、Pi）的开发工作流。同模型族内的几行快速小改，直接用当前宿主自带的 subagent 通常最轻快。

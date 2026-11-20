@@ -1,0 +1,52 @@
+name: Build site
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - site/**
+      - docs-site/**
+      - CHANGELOG.md
+      - package.json
+      - .github/workflows/build-site.yml
+  pull_request:
+    paths:
+      - site/**
+      - docs-site/**
+      - CHANGELOG.md
+      - package.json
+      - .github/workflows/build-site.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install docs dependencies
+        run: npm ci --prefix docs-site
+      - name: Test docs builder
+        run: node --test docs-site/build.test.mjs
+      - name: Build static site and verify links
+        run: sh site/build.sh
+      - name: Upload static site bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: broco-site-public
+          path: site/dist/public
+          if-no-files-found: error
