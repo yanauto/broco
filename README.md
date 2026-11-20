@@ -17,7 +17,7 @@
 Requires macOS or Linux, Node.js 24+, and two or more coding CLIs you already signed into locally.
 
 ```sh
-npm install -g broco
+npm install -g @yanauto/broco
 broco setup
 ```
 

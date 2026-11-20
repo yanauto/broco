@@ -17,7 +17,7 @@
 需要 macOS 或 Linux、Node.js 24+，以及至少两个你已在本机登录好的编程 CLI。
 
 ```sh
-npm install -g broco
+npm install -g @yanauto/broco
 broco setup
 ```
 

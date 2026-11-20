@@ -93,17 +93,17 @@ const hoodMeta = {
 
 const setupModes = {
   l0: {
-    code: 'npm install -g broco\nbroco setup',
+    code: 'npm install -g @yanauto/broco\nbroco setup',
     en: 'Writes to ~/.broco/, ~/.agents/skills/broco/, and detected local harness skill folders (Claude Code, Codex, Antigravity, Cursor, OpenCode, Pi). Your repo stays untouched.',
     zh: '仅写入 ~/.broco/、~/.agents/skills/broco/ 以及本机已检测到的宿主 skills 目录（Claude Code、Codex、Antigravity、Cursor、OpenCode、Pi），项目仓库保持原样。'
   },
   l1: {
-    code: 'npm install -g broco\nbroco setup\nbroco init --allow claude,codex,agy,pi:deepseek --default-worker agy --concurrency 4',
+    code: 'npm install -g @yanauto/broco\nbroco setup\nbroco init --allow claude,codex,agy,pi:deepseek --default-worker agy --concurrency 4',
     en: 'Optional per-repo mode: adds .broco/ and a marked AGENTS.md section when a repo needs its own allowlist or concurrency cap.',
     zh: '可选项目级模式：写入 .broco/ 并维护 AGENTS.md 标记段，适合需要单独锁定可用 harness 与并发上限的仓库。'
   },
   migrate: {
-    code: 'npm install -g broco\nbroco shutdown\nbroco setup --migrate-cc-bro',
+    code: 'npm install -g @yanauto/broco\nbroco shutdown\nbroco setup --migrate-cc-bro',
     en: 'Stops running cc-bro background workers cleanly and moves ~/.cc-bro/ projects and ticket history into ~/.broco/.',
     zh: '平滑停止旧 cc-bro 后台进程，并将 ~/.cc-bro/ 下的项目配置与历史工单迁入 ~/.broco/。'
   }

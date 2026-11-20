@@ -8,7 +8,7 @@
 2. Install `broco`, stop any legacy runner, and run `broco setup`:
 
 ```sh
-npm install -g broco
+npm install -g @yanauto/broco
 broco shutdown
 broco setup --migrate-cc-bro
 ```

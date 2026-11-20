@@ -1,5 +1,5 @@
 {
-  "name": "broco",
+  "name": "@yanauto/broco",
   "version": "1.0.0",
   "description": "Let your AI coding harnesses work together — Claude Code, Codex, Cursor, Antigravity, OpenCode, and Pi.",
   "license": "Apache-2.0",

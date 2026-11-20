@@ -8,7 +8,7 @@
 2. 安装 `broco`，停止旧版后台服务并运行 `broco setup`：
 
 ```sh
-npm install -g broco
+npm install -g @yanauto/broco
 broco shutdown
 broco setup --migrate-cc-bro
 ```

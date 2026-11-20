@@ -13,7 +13,7 @@ node --version
 ## Install the CLI and open skill
 
 ```sh
-npm install -g broco
+npm install -g @yanauto/broco
 broco setup
 ```
 

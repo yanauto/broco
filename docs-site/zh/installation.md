@@ -13,7 +13,7 @@ node --version
 ## 安装 CLI 与开放 Skill
 
 ```sh
-npm install -g broco
+npm install -g @yanauto/broco
 broco setup
 ```
 
