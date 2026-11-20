@@ -55,8 +55,8 @@ export function alive(pid) {
 export function harness(t, live = false, overrides = {}) {
   const sandbox = join(repo, '.sandbox')
   mkdirSync(sandbox, { recursive: true })
-  const base = realpathSync(mkdtempSync(join(tmpdir(), live ? 'broco-live-' : 'broco-offline-')))
-  const profile = realpathSync(mkdtempSync(join(sandbox, 'profile-')))
+  const base = realpathSync.native(mkdtempSync(join(tmpdir(), live ? 'broco-live-' : 'broco-offline-')))
+  const profile = realpathSync.native(mkdtempSync(join(sandbox, 'profile-')))
   const data = join(profile, 'data')
   const socket = socketFor(data)
   const cwd = join(base, 'work')

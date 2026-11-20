@@ -256,7 +256,7 @@ test('review allows omitting --by and passes by: null to /review RPC', async t =
   assert.deepEqual(parsedOmitted.positionals, ['feature-x'])
   assert.equal(parsedOmitted.opt.by, undefined)
 
-  const tempRoot = realpathSync(mkdtempSync(join(tmpdir(), 'broco-review-rpc-')))
+  const tempRoot = realpathSync.native(mkdtempSync(join(tmpdir(), 'broco-review-rpc-')))
   const dataDir = join(tempRoot, 'data')
   const workDir = join(tempRoot, 'work')
   mkdirSync(dataDir, { recursive: true })
@@ -553,7 +553,7 @@ test('read-only commands in an unregistered directory do not create implicit L0 
 })
 
 test('pi host setup uses deduplicated symlink, respects PI_CODING_AGENT_DIR, replaces legacy copy, and guards self-overlap', t => {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), 'broco-pi-setup-')))
+  const root = realpathSync.native(mkdtempSync(join(tmpdir(), 'broco-pi-setup-')))
   t.after(() => rmSync(root, { recursive: true, force: true }))
 
   const homeDefault = join(root, 'home-default')
@@ -566,13 +566,13 @@ test('pi host setup uses deduplicated symlink, respects PI_CODING_AGENT_DIR, rep
   assert.ok(first.hosts.some(host => host.id === 'pi'))
   assert.equal(first.skippedHosts.includes('pi'), false)
   assert.equal(lstatSync(piSkillDir).isSymbolicLink(), true)
-  assert.equal(realpathSync(piSkillDir), realpathSync(universalDir))
+  assert.equal(realpathSync.native(piSkillDir), realpathSync.native(universalDir))
   assert.equal(existsSync(join(piSkillDir, 'SKILL.md')), true)
 
   const second = setupInfo({ homeDir: homeDefault, env: envDefault })
   assert.deepEqual(second.hosts, first.hosts)
   assert.equal(lstatSync(piSkillDir).isSymbolicLink(), true)
-  assert.equal(realpathSync(piSkillDir), realpathSync(universalDir))
+  assert.equal(realpathSync.native(piSkillDir), realpathSync.native(universalDir))
 
   const homeCustom = join(root, 'home-custom')
   const customPiDir = join(root, 'custom-pi-agent')
@@ -580,7 +580,7 @@ test('pi host setup uses deduplicated symlink, respects PI_CODING_AGENT_DIR, rep
   const customPiSkillDir = join(customPiDir, 'skills', 'broco')
   assert.ok(customRes.hosts.some(host => host.id === 'pi'))
   assert.equal(lstatSync(customPiSkillDir).isSymbolicLink(), true)
-  assert.equal(realpathSync(customPiSkillDir), realpathSync(join(homeCustom, '.agents', 'skills', 'broco')))
+  assert.equal(realpathSync.native(customPiSkillDir), realpathSync.native(join(homeCustom, '.agents', 'skills', 'broco')))
 
   const homeLegacy = join(root, 'home-legacy')
   const legacyPiSkillDir = join(homeLegacy, '.pi', 'agent', 'skills', 'broco')
@@ -592,7 +592,7 @@ test('pi host setup uses deduplicated symlink, respects PI_CODING_AGENT_DIR, rep
   const replaced = setupInfo({ homeDir: homeLegacy, env: envDefault })
   assert.ok(replaced.hosts.some(host => host.id === 'pi'))
   assert.equal(lstatSync(legacyPiSkillDir).isSymbolicLink(), true)
-  assert.equal(realpathSync(legacyPiSkillDir), realpathSync(join(homeLegacy, '.agents', 'skills', 'broco')))
+  assert.equal(realpathSync.native(legacyPiSkillDir), realpathSync.native(join(homeLegacy, '.agents', 'skills', 'broco')))
   assert.match(readFileSync(join(legacyPiSkillDir, 'SKILL.md'), 'utf8'), /On-Demand Crew/)
 
   const homeOverlap = join(root, 'home-overlap')

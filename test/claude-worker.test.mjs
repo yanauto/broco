@@ -21,7 +21,7 @@ import { harness, writeFakeCli } from './harness.mjs'
 const exec = promisify(execFile)
 
 function makeTemp(t, prefix = 'broco-claude-') {
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), prefix)))
+  const dir = realpathSync.native(mkdtempSync(join(tmpdir(), prefix)))
   t.after(() => rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }))
   return dir
 }
@@ -29,7 +29,7 @@ function makeTemp(t, prefix = 'broco-claude-') {
 async function runInChild(env, code, argObj = {}) {
   const sandbox = join(repo, '.sandbox')
   mkdirSync(sandbox, { recursive: true })
-  const home = realpathSync(mkdtempSync(join(sandbox, 'claude-home-')))
+  const home = realpathSync.native(mkdtempSync(join(sandbox, 'claude-home-')))
   try {
     const { stdout } = await exec(
       process.execPath,

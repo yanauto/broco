@@ -17,7 +17,7 @@ import { writeFakeCli } from './harness.mjs'
 const exec = promisify(execFile)
 
 function makeTemp(t, prefix = 'cc-bro-adapters-') {
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), prefix)))
+  const dir = realpathSync.native(mkdtempSync(join(tmpdir(), prefix)))
   t.after(() => rmSync(dir, { recursive: true, force: true }))
   return dir
 }
@@ -25,7 +25,7 @@ function makeTemp(t, prefix = 'cc-bro-adapters-') {
 async function runInChild(env, code, argObj = {}) {
   const sandbox = join(repo, '.sandbox')
   mkdirSync(sandbox, { recursive: true })
-  const home = realpathSync(mkdtempSync(join(sandbox, 'adapter-home-')))
+  const home = realpathSync.native(mkdtempSync(join(sandbox, 'adapter-home-')))
   try {
     const { stdout } = await exec(
       process.execPath,
@@ -298,7 +298,7 @@ test('codex worktree turns grant writable access to main repo commonGitDir in ap
   execFileSync('git', ['-c', 'user.name=Test', '-c', 'user.email=test@localhost', 'commit', '-qm', 'init'], { cwd: mainRepo })
 
   const tree = createTree(mainRepo, stateDir, 'wt-commit')
-  const expectedCommonGit = realpathSync(join(mainRepo, '.git'))
+  const expectedCommonGit = realpathSync.native(join(mainRepo, '.git'))
 
   writeFakeCli(bin, 'codex', [
     "import { appendFileSync } from 'node:fs'",

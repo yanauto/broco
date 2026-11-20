@@ -21,11 +21,11 @@ import { packageBoard } from '../scripts/package-board.mjs'
 import { validateModelCatalog } from '../scripts/sync-model-catalog.mjs'
 import { prependPath, writeFakeCli } from './harness.mjs'
 
-const worktreeRoot = realpathSync(fileURLToPath(new URL('../', import.meta.url)))
+const worktreeRoot = realpathSync.native(fileURLToPath(new URL('../', import.meta.url)))
 
 test('sanitizeSetupPath, setupInfo, and setup strip ephemeral/shim dirs while preserving isolated fixtures', () => {
-  const realDir = realpathSync(mkdtempSync(join(homedir(), '.cc-bro-test-path-')))
-  const tempRoot = mkdtempSync(join(tmpdir(), 'cc-bro-setup-'))
+  const realDir = realpathSync.native(mkdtempSync(join(homedir(), '.cc-bro-test-path-')))
+  const tempRoot = realpathSync.native(mkdtempSync(join(tmpdir(), 'cc-bro-setup-')))
   try {
     const fixtureDir = join(worktreeRoot, 'test', 'fixtures')
     if (process.platform === 'win32') {
@@ -229,9 +229,9 @@ test('modelVariables, expandHome, workerPolicy, and claudeMdBlock enforce agent-
   assert.equal(expandHome('~'), homedir())
   assert.equal(expandHome('~/sub/file.md'), join(homedir(), 'sub/file.md'))
   assert.equal(expandHome('relative/file.md'), 'relative/file.md')
-  const homeSub = realpathSync(mkdtempSync(join(homedir(), '.cc-bro-tilde-')))
+  const homeSub = realpathSync.native(mkdtempSync(join(homedir(), '.cc-bro-tilde-')))
   try {
-    const rel = homeSub.slice(realpathSync(homedir()).length + 1)
+    const rel = homeSub.slice(realpathSync.native(homedir()).length + 1)
     assert.equal(directoryOption('~/' + rel, '--cwd'), homeSub)
   } finally {
     rmSync(homeSub, { recursive: true, force: true })

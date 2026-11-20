@@ -96,7 +96,7 @@ test('parseCmdNodeShim parses npm 12.0.2, pnpm/yarn, and simple Node shims and r
 })
 
 test('resolveCli and resolveCommand follow Windows PATHEXT, skip extensionless POSIX shims, unwrap Node shims, and fallback to ComSpec', t => {
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'broco-win-resolve-')))
+  const dir = realpathSync.native(mkdtempSync(join(tmpdir(), 'broco-win-resolve-')))
   t.after(() => rmSync(dir, { recursive: true, force: true }))
 
   writeFileSync(join(dir, 'pi'), '#!/bin/sh\necho posix\n')
@@ -142,7 +142,7 @@ test('resolveCli and resolveCommand follow Windows PATHEXT, skip extensionless P
 })
 
 test('setupInfo generates broco.cmd on win32, uses NTFS junction for Pi, and falls back to copying SKILL.md on EPERM', t => {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), 'broco-win-setup-')))
+  const root = realpathSync.native(mkdtempSync(join(tmpdir(), 'broco-win-setup-')))
   t.after(() => rmSync(root, { recursive: true, force: true }))
 
   const homeJunction = join(root, 'home-junction')
@@ -199,7 +199,7 @@ test('setupInfo generates broco.cmd on win32, uses NTFS junction for Pi, and fal
 })
 
 test('socketFor produces Windows Named Pipes on win32 and deterministic socket paths on POSIX', t => {
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'broco-win-sock-')))
+  const dir = realpathSync.native(mkdtempSync(join(tmpdir(), 'broco-win-sock-')))
   t.after(() => rmSync(dir, { recursive: true, force: true }))
 
   const sock = socketFor(dir)

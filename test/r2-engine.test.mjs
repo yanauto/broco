@@ -230,7 +230,7 @@ test('all 23 owned files in Track 1 contain strictly zero JS comments', () => {
 })
 
 test('150-shard map + batched ticketRows + batchDetail completes in <500ms without O(Q^2) notification storm', async t => {
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'cc-bro-bench-')))
+  const dir = realpathSync.native(mkdtempSync(join(tmpdir(), 'cc-bro-bench-')))
   const slots = new Slots(4)
   const store = new Store(false, join(dir, 'tickets.sqlite'))
   t.after(() => {
@@ -376,7 +376,7 @@ test('Crew.record suppresses empty pi streaming deltas and Store.detail exposes 
 })
 
 test('map partial failure trims batch shards, batchDetail supports status/full, and retryBatch retries only failed/stopped shards', async t => {
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'cc-bro-batch-ops-')))
+  const dir = realpathSync.native(mkdtempSync(join(tmpdir(), 'cc-bro-batch-ops-')))
   const slots = new Slots(3)
   const store = new Store(false, join(dir, 'tickets.sqlite'))
   t.after(() => {
@@ -459,7 +459,7 @@ test('orphan-free worker lifecycle: runNative reaps background children + unlink
     ? new Set((await exec('/bin/launchctl', ['list'])).stdout.split('\n').map(l => l.split('\t')[2]).filter(l => l?.startsWith('me.yanauto.broco.')))
     : new Set()
 
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'cc-bro-lifecycle-')))
+  const dir = realpathSync.native(mkdtempSync(join(tmpdir(), 'cc-bro-lifecycle-')))
   const store = new Store(false, join(dir, 'tickets.sqlite'))
   const slots = new Slots(2)
   t.after(async () => {
@@ -524,7 +524,7 @@ test('orphan-free worker lifecycle: runNative reaps background children + unlink
     assert.equal(alive(resumedPid), false)
   }
 
-  const idleRoot = realpathSync(mkdtempSync(join(repo, '.sandbox', 'idle-ttl-')))
+  const idleRoot = realpathSync.native(mkdtempSync(join(repo, '.sandbox', 'idle-ttl-')))
   try {
     const subStore = new Store(false, join(idleRoot, 'tickets.sqlite'))
     const subSlots = new Slots(1)
@@ -574,7 +574,7 @@ test('orphan-free worker lifecycle: runNative reaps background children + unlink
 })
 
 test('worktree async changes, diffWorktree (tracked + untracked + statOnly), cleanWorktrees, and gcAttachments', async t => {
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'cc-bro-wt-gc-')))
+  const dir = realpathSync.native(mkdtempSync(join(tmpdir(), 'cc-bro-wt-gc-')))
   const repoDir = join(dir, 'repo')
   const stateDir = join(dir, 'state')
   mkdirSync(repoDir)
@@ -658,7 +658,7 @@ test('worktree async changes, diffWorktree (tracked + untracked + statOnly), cle
 })
 
 test('security hardening, agy singleflight + resetEpoch fix, and problems.mjs real provider classifications', async t => {
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'cc-bro-sec-')))
+  const dir = realpathSync.native(mkdtempSync(join(tmpdir(), 'cc-bro-sec-')))
   t.after(() => rmSync(dir, { recursive: true, force: true }))
 
   const sock = socketFor(join(dir, 'home'))
