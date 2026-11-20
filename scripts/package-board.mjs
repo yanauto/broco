@@ -1,7 +1,7 @@
-import { execFileSync } from 'node:child_process'
 import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { execCliSync } from '../lib/spawn-cli.mjs'
 
 const defaultRoot = fileURLToPath(new URL('../', import.meta.url))
 
@@ -19,7 +19,7 @@ export function newestMtime(path) {
 
 export function packageBoard({
   root = defaultRoot,
-  build = cwd => execFileSync('npm', ['--prefix', 'ui', 'run', 'build'], { cwd, stdio: 'inherit' })
+  build = cwd => execCliSync('npm', ['--prefix', 'ui', 'run', 'build'], { cwd, stdio: 'inherit' })
 } = {}) {
   const uiDir = join(root, 'ui')
   const uiSrc = join(uiDir, 'src')
