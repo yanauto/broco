@@ -8,7 +8,7 @@
 
 > 看看现在哪家额度宽裕，帮我找一下认证测试在哪里（不改文件）；或者拉个独立 worktree 修好 `verifyToken()` 过期测试，再让另一家模型盲审一遍。
 
-装好的 `SKILL.md` 会引导主 Agent 自动查看 `broco roster --json`、按额度派单、零轮询事件唤醒等待、用 `broco diff` 验收改动并干净收尾。
+装好的 `SKILL.md` 会引导主 Agent 自动查看 `broco roster --json`、按额度派单、事件驱动等待（无需轮询）、用 `broco diff` 验收改动并干净收尾。
 
 ## 2. 也可以在终端亲自试跑
 
@@ -18,7 +18,7 @@ broco roster
 broco say test-map "找到测试所在位置并告诉我怎么跑一条，不要改文件。" --bg --json
 ```
 
-`--bg` 立刻返回带 `name` 和 `turn` 的回执。新名字（`test-map`）开启新持久会话，复用同名继续原会话。遇到含多行代码、反引号或 `$VAR` 的长题面，改用 `--file prompt.md` 或经 `stdin`（`-`）传入：
+`--bg` 立刻返回带 `name` 和 `turn` 的回执。新名字（`test-map`）开启新持久会话，复用同名继续原会话。遇到含多行代码、反引号或 `$VAR` 的长题面，改用 `--file prompt.md` 或经 `stdin`（`-`；Windows PowerShell 或 `cmd` 下请用 `--file prompt.md` 或 `@' ... '@` 管道替代 `<<'EOF'`）传入：
 
 ```sh
 broco say auth-fix - --worker agy --worktree --bg --json <<'EOF'

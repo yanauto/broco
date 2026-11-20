@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import { execFile } from 'node:child_process'
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { delimiter, join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import test from 'node:test'
 import { promisify } from 'node:util'
@@ -16,13 +16,13 @@ import { Roster } from '../lib/roster.mjs'
 import { rosterOutput, rosterText } from '../lib/roster-output.mjs'
 import { Slots } from '../lib/slots.mjs'
 import { Store } from '../lib/store.mjs'
-import { harness } from './harness.mjs'
+import { harness, writeFakeCli } from './harness.mjs'
 
 const exec = promisify(execFile)
 
 function makeTemp(t, prefix = 'broco-claude-') {
   const dir = realpathSync(mkdtempSync(join(tmpdir(), prefix)))
-  t.after(() => rmSync(dir, { recursive: true, force: true }))
+  t.after(() => rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }))
   return dir
 }
 
@@ -55,9 +55,7 @@ test('claude streamTurn handles stdin prompts, two-turn resume, tools, usage/cac
   mkdirSync(work)
   mkdirSync(attachDir)
 
-  const fakeClaude = join(bin, 'claude')
-  writeFileSync(fakeClaude, [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'claude', [
     "import { execFileSync } from 'node:child_process'",
     "import { appendFileSync, readFileSync, writeFileSync } from 'node:fs'",
     "import { join } from 'node:path'",
@@ -108,8 +106,7 @@ test('claude streamTurn handles stdin prompts, two-turn resume, tools, usage/cac
     "  emit({ type: 'assistant', session_id: sid, message: { id: 'm3', role: 'assistant', content: [{ type: 'text', text: answer }] } })",
     "  emit({ type: 'result', subtype: 'success', is_error: false, session_id: sid, result: '', usage: { input_tokens: 60, cache_creation_input_tokens: 15, cache_read_input_tokens: 225, output_tokens: 12 } })",
     '}'
-  ].join('\n'))
-  chmodSync(fakeClaude, 0o755)
+  ])
 
   const attachments = [
     { path: join(attachDir, 'diagram.png'), kind: 'image', name: 'diagram.png' },
@@ -166,7 +163,7 @@ test('claude streamTurn handles stdin prompts, two-turn resume, tools, usage/cac
 
   const out = await runInChild(
     {
-      PATH: bin + ':' + process.env.PATH,
+      PATH: bin + delimiter + process.env.PATH,
       CLAUDECODE: '1',
       CLAUDE_CODE_ENTRYPOINT: 'cli',
       CLAUDE_CODE_SSE_PORT: '12345',
@@ -267,8 +264,7 @@ test('detectCli probes claude read-only without leaking PII/secrets, declares ca
   const modeFile = join(dir, 'auth-mode.txt')
   writeFileSync(modeFile, 'ready')
 
-  writeFileSync(join(bin, 'claude'), [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'claude', [
     "import { readFileSync } from 'node:fs'",
     'const args = process.argv.slice(2)',
     "if (args.includes('--version')) { console.log('2.1.325 (Claude Code)'); process.exit(0) }",
@@ -286,8 +282,7 @@ test('detectCli probes claude read-only without leaking PII/secrets, declares ca
     '  process.exit(0)',
     '}',
     'process.exit(1)'
-  ].join('\n'))
-  chmodSync(join(bin, 'claude'), 0o755)
+  ])
 
   const prevPath = process.env.PATH
   const prevCfg = process.env.CLAUDE_CONFIG_DIR
@@ -298,7 +293,7 @@ test('detectCli probes claude read-only without leaking PII/secrets, declares ca
     clearDetectCache()
   })
   clearDetectCache()
-  process.env.PATH = bin + ':' + prevPath
+  process.env.PATH = bin + delimiter + prevPath
   process.env.CLAUDE_CONFIG_DIR = cfgDir
 
   const readyInfo = await detectCli('claude', dir, { refresh: true })
@@ -330,30 +325,34 @@ test('detectCli probes claude read-only without leaking PII/secrets, declares ca
   writeFileSync(modeFile, 'ready')
   const db = new DatabaseSync(':memory:')
   const store = new Store(false, join(dir, 'tickets.sqlite'))
-  t.after(() => { db.close(); store.db.close() })
-  db.exec('CREATE TABLE projects(id TEXT PRIMARY KEY,name TEXT,repoPath TEXT,created INTEGER,allow TEXT,worker TEXT,concurrency INTEGER)')
-  const proj = { id: 'p1', name: 'demo', repoPath: dir, allow: ['claude'], worker: 'claude', concurrency: null }
-  db.prepare('INSERT INTO projects VALUES (?,?,?,?,?,?,?)').run(proj.id, proj.name, proj.repoPath, Date.now(), JSON.stringify(proj.allow), proj.worker, null)
-  const roster = new Roster({ db, entries: new Map([[proj.id, proj]]), crews: () => [{ store }], publish() {}, get: () => proj })
+  try {
+    db.exec('CREATE TABLE projects(id TEXT PRIMARY KEY,name TEXT,repoPath TEXT,created INTEGER,allow TEXT,worker TEXT,concurrency INTEGER)')
+    const proj = { id: 'p1', name: 'demo', repoPath: dir, allow: ['claude'], worker: 'claude', concurrency: null }
+    db.prepare('INSERT INTO projects VALUES (?,?,?,?,?,?,?)').run(proj.id, proj.name, proj.repoPath, Date.now(), JSON.stringify(proj.allow), proj.worker, null)
+    const roster = new Roster({ db, entries: new Map([[proj.id, proj]]), crews: () => [{ store }], publish() {}, get: () => proj })
 
-  const beforeErr = rosterOutput(await roster.list(proj.id, false, { refresh: true }))
-  assert.match(rosterText(beforeErr), /quota=unreported \(CLI does not report usage\)/)
+    const beforeErr = rosterOutput(await roster.list(proj.id, false, { refresh: true }))
+    assert.match(rosterText(beforeErr), /quota=unreported \(CLI does not report usage\)/)
 
-  const c1 = store.create('cap-hit', dir, 'opus', 'Cap', null, 'claude')
-  store.accept(c1, 'work')
-  store.finish(c1.id, 1, 'error', "You've hit your limit · resets 3pm (UTC)")
+    const c1 = store.create('cap-hit', dir, 'opus', 'Cap', null, 'claude')
+    store.accept(c1, 'work')
+    store.finish(c1.id, 1, 'error', "You've hit your limit · resets 3pm (UTC)")
 
-  const afterErr = rosterOutput(await roster.list(proj.id, false, { refresh: true }))
-  const claudeRow = afterErr.workers.find(w => w.id === 'claude')
-  assert.equal(claudeRow.quota?.source, 'observed')
-  assert.match(quotaText(claudeRow.quota), /observed: quota .* 先别派/)
+    const afterErr = rosterOutput(await roster.list(proj.id, false, { refresh: true }))
+    const claudeRow = afterErr.workers.find(w => w.id === 'claude')
+    assert.equal(claudeRow.quota?.source, 'observed')
+    assert.match(quotaText(claudeRow.quota), /observed: quota .* 先别派/)
 
-  const c2 = store.create('recovered', dir, 'opus', 'OK', null, 'claude')
-  store.accept(c2, 'work')
-  store.finish(c2.id, 1, 'done', 'Waiting', store.assistant(c2.id, 1, 'ok'))
+    const c2 = store.create('recovered', dir, 'opus', 'OK', null, 'claude')
+    store.accept(c2, 'work')
+    store.finish(c2.id, 1, 'done', 'Waiting', store.assistant(c2.id, 1, 'ok'))
 
-  const afterRecover = rosterOutput(await roster.list(proj.id, false, { refresh: true }))
-  assert.equal(afterRecover.workers.find(w => w.id === 'claude').quota, null)
+    const afterRecover = rosterOutput(await roster.list(proj.id, false, { refresh: true }))
+    assert.equal(afterRecover.workers.find(w => w.id === 'claude').quota, null)
+  } finally {
+    db.close()
+    store.db.close()
+  }
 })
 
 test('all worker adapters inject BROCO_IN_WORKER=1 and strip host session env vars', async t => {
@@ -375,17 +374,15 @@ test('all worker adapters inject BROCO_IN_WORKER=1 and strip host session env va
     "}) + '\\n')"
   ].join('\n')
 
-  writeFileSync(join(bin, 'claude'), [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'claude', [
     recordSnippet,
     "record('claude')",
     "for await (const _ of process.stdin) {}",
     "console.log(JSON.stringify({ type: 'system', subtype: 'init', session_id: 's-claude' }))",
     "console.log(JSON.stringify({ type: 'result', subtype: 'success', is_error: false, session_id: 's-claude', result: 'ok' }))"
-  ].join('\n'))
+  ])
 
-  writeFileSync(join(bin, 'agy'), [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'agy', [
     recordSnippet,
     'const args = process.argv.slice(2)',
     "if (args.includes('/usage')) { console.log(JSON.stringify({ status: 'SUCCESS', command: { data: { groups: [] } } })); process.exit(0) }",
@@ -393,25 +390,22 @@ test('all worker adapters inject BROCO_IN_WORKER=1 and strip host session env va
     "for await (const _ of process.stdin) {}",
     "console.log(JSON.stringify({ event: 'init', conversation_id: 's-agy' }))",
     "console.log(JSON.stringify({ event: 'result', result: { conversation_id: 's-agy', status: 'SUCCESS', response: 'ok' } }))"
-  ].join('\n'))
+  ])
 
-  writeFileSync(join(bin, 'cursor-agent'), [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'cursor-agent', [
     recordSnippet,
     "record('cursor-agent')",
     "console.log(JSON.stringify({ type: 'system', subtype: 'init', session_id: 's-cursor' }))",
     "console.log(JSON.stringify({ type: 'result', subtype: 'success', is_error: false, session_id: 's-cursor', result: 'ok' }))"
-  ].join('\n'))
+  ])
 
-  writeFileSync(join(bin, 'custom-probe'), [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'custom-probe', [
     recordSnippet,
     "record('custom')",
     "console.log(JSON.stringify({ id: 's-custom', reply: 'ok' }))"
-  ].join('\n'))
+  ])
 
-  writeFileSync(join(bin, 'codex'), [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'codex', [
     "import { createInterface } from 'node:readline'",
     recordSnippet,
     'const args = process.argv.slice(2)',
@@ -436,10 +430,9 @@ test('all worker adapters inject BROCO_IN_WORKER=1 and strip host session env va
     "console.log(JSON.stringify({ type: 'thread.started', thread_id: 't-exec' }))",
     "console.log(JSON.stringify({ type: 'item.completed', item: { type: 'agent_message', text: 'ok' } }))",
     "console.log(JSON.stringify({ type: 'turn.completed', usage: { cached_input_tokens: 0, input_tokens: 5 } }))"
-  ].join('\n'))
+  ])
 
-  writeFileSync(join(bin, 'pi'), [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'pi', [
     "import { createInterface } from 'node:readline'",
     recordSnippet,
     'const args = process.argv.slice(2)',
@@ -456,9 +449,7 @@ test('all worker adapters inject BROCO_IN_WORKER=1 and strip host session env va
     '  const r = JSON.parse(line)',
     "  if (r.type === 'get_state') console.log(JSON.stringify({ type: 'response', id: r.id, command: r.type, success: true, data: { sessionId: 'pi-s1', model: { provider: 'deepseek', id: 'a' } } }))",
     '}'
-  ].join('\n'))
-
-  for (const f of ['claude', 'agy', 'cursor-agent', 'custom-probe', 'codex', 'pi']) chmodSync(join(bin, f), 0o755)
+  ])
 
   const childCode = [
     "import { nativeTurn } from './lib/native.mjs'",
@@ -482,7 +473,7 @@ test('all worker adapters inject BROCO_IN_WORKER=1 and strip host session env va
 
   await runInChild(
     {
-      PATH: bin + ':' + process.env.PATH,
+      PATH: bin + delimiter + process.env.PATH,
       CLAUDECODE: '1',
       CLAUDE_CODE_ENTRYPOINT: 'cli',
       CLAUDE_CODE_SSE_PORT: '9999',
@@ -515,77 +506,79 @@ test('crew.review auto-selects cross-vendor reviewer preferring plentiful/ready/
 
   const dir = makeTemp(t)
   const store = new Store(false, join(dir, 'tickets.sqlite'))
-  t.after(() => store.db.close())
+  try {
+    const settings = {
+      id: 'rev',
+      repoPath: dir,
+      allow: ['codex', 'pi:openai-codex', 'claude', 'agy', 'pi:deepseek'],
+      worker: 'codex',
+      entries: {},
+      rules: []
+    }
+    const crew = new Crew(store, new Slots(2), () => settings)
+    const dispatched = []
+    crew.say = async (input, review) => {
+      dispatched.push({ input, review })
+      return { name: input.name, worker: input.worker, turn: 1 }
+    }
 
-  const settings = {
-    id: 'rev',
-    repoPath: dir,
-    allow: ['codex', 'pi:openai-codex', 'claude', 'agy', 'pi:deepseek'],
-    worker: 'codex',
-    entries: {},
-    rules: []
+    const writer = store.create('feat-x', dir, 'gpt-6.1-sol', 'Feature X', 'medium', 'codex')
+    store.accept(writer, 'implement feature x')
+    store.finish(writer.id, 1, 'done', 'Done', store.assistant(writer.id, 1, 'implemented'))
+
+    let detectMap = {}
+    crew.detectWorker = async id => detectMap[id] ?? { installed: false, loginStatus: 'not-installed', models: [] }
+
+    detectMap = {
+      claude: { installed: true, capability: 'full', loginStatus: 'ready', models: [{ id: 'opus' }], defaultModel: 'opus' },
+      agy: {
+        installed: true, capability: 'full', loginStatus: 'ready', models: [{ id: 'gemini-4-argon-medium' }], defaultModel: 'gemini-4-argon-medium',
+        quota: { source: 'native', windows: [{ minutes: 300, usedPercent: 10 }], reached: false, avoid: false, plentiful: true }
+      },
+      'pi:deepseek': { installed: true, capability: 'full', loginStatus: 'ready', models: [{ id: 'deepseek/deepseek-v4.1-flash' }], defaultModel: 'deepseek/deepseek-v4.1-flash' }
+    }
+    const rPlentiful = await crew.review({ name: 'feat-x' })
+    assert.equal(rPlentiful.worker, 'agy')
+
+    detectMap.agy.quota = { source: 'native', windows: [{ minutes: 300, usedPercent: 95 }], reached: false, avoid: true, plentiful: false }
+    const rAvoidFallback = await crew.review({ name: 'feat-x', by: '' })
+    assert.equal(rAvoidFallback.worker, 'claude')
+
+    const capConv = store.create('claude-cap', dir, 'opus', 'Cap', null, 'claude')
+    store.accept(capConv, 'work')
+    store.finish(capConv.id, 1, 'error', "You've hit your limit · resets 3pm (UTC)")
+
+    const rAfterObserved = await crew.review({ name: 'feat-x', by: null })
+    assert.equal(rAfterObserved.worker, 'pi:deepseek')
+
+    await assert.rejects(crew.review({ name: 'feat-x', by: 'codex' }), /different worker/)
+    await assert.rejects(crew.review({ name: 'feat-x', by: 'pi:openai-codex' }), /different worker.*openai/)
+    const rExplicit = await crew.review({ name: 'feat-x', by: 'claude' })
+    assert.equal(rExplicit.worker, 'claude')
+
+    const agyClaude = store.create('agy-c', dir, 'claude-sonnet-4-6', 'Agy running Claude', null, 'agy')
+    store.accept(agyClaude, 'write')
+    store.finish(agyClaude.id, 1, 'done', 'Done', store.assistant(agyClaude.id, 1, 'done'))
+    settings.allow = ['agy', 'claude', 'codex']
+    detectMap = {
+      claude: { installed: true, capability: 'full', loginStatus: 'ready', models: [{ id: 'opus' }], defaultModel: 'opus' },
+      codex: { installed: true, capability: 'full', loginStatus: 'ready', models: [{ id: 'gpt-6.1-sol' }], defaultModel: 'gpt-6.1-sol' }
+    }
+    const rModelVendor = await crew.review({ name: 'agy-c' })
+    assert.equal(rModelVendor.worker, 'codex')
+
+    settings.allow = ['codex', 'pi:openai-codex']
+    await assert.rejects(crew.review({ name: 'feat-x' }), /No cross-vendor reviewer.*allowed: codex, pi:openai-codex.*--by/)
+
+    settings.allow = ['codex', 'claude', 'agy']
+    detectMap = {
+      claude: { installed: true, capability: 'full', loginStatus: 'signed-out', models: [{ id: 'opus' }] },
+      agy: { installed: false, capability: 'full', loginStatus: 'not-installed', models: [] }
+    }
+    await assert.rejects(crew.review({ name: 'feat-x' }), /No ready cross-vendor reviewer.*claude: signed-out.*agy: not-installed.*--by/)
+  } finally {
+    store.db.close()
   }
-  const crew = new Crew(store, new Slots(2), () => settings)
-  const dispatched = []
-  crew.say = async (input, review) => {
-    dispatched.push({ input, review })
-    return { name: input.name, worker: input.worker, turn: 1 }
-  }
-
-  const writer = store.create('feat-x', dir, 'gpt-6.1-sol', 'Feature X', 'medium', 'codex')
-  store.accept(writer, 'implement feature x')
-  store.finish(writer.id, 1, 'done', 'Done', store.assistant(writer.id, 1, 'implemented'))
-
-  let detectMap = {}
-  crew.detectWorker = async id => detectMap[id] ?? { installed: false, loginStatus: 'not-installed', models: [] }
-
-  detectMap = {
-    claude: { installed: true, capability: 'full', loginStatus: 'ready', models: [{ id: 'opus' }], defaultModel: 'opus' },
-    agy: {
-      installed: true, capability: 'full', loginStatus: 'ready', models: [{ id: 'gemini-4-argon-medium' }], defaultModel: 'gemini-4-argon-medium',
-      quota: { source: 'native', windows: [{ minutes: 300, usedPercent: 10 }], reached: false, avoid: false, plentiful: true }
-    },
-    'pi:deepseek': { installed: true, capability: 'full', loginStatus: 'ready', models: [{ id: 'deepseek/deepseek-v4.1-flash' }], defaultModel: 'deepseek/deepseek-v4.1-flash' }
-  }
-  const rPlentiful = await crew.review({ name: 'feat-x' })
-  assert.equal(rPlentiful.worker, 'agy')
-
-  detectMap.agy.quota = { source: 'native', windows: [{ minutes: 300, usedPercent: 95 }], reached: false, avoid: true, plentiful: false }
-  const rAvoidFallback = await crew.review({ name: 'feat-x', by: '' })
-  assert.equal(rAvoidFallback.worker, 'claude')
-
-  const capConv = store.create('claude-cap', dir, 'opus', 'Cap', null, 'claude')
-  store.accept(capConv, 'work')
-  store.finish(capConv.id, 1, 'error', "You've hit your limit · resets 3pm (UTC)")
-
-  const rAfterObserved = await crew.review({ name: 'feat-x', by: null })
-  assert.equal(rAfterObserved.worker, 'pi:deepseek')
-
-  await assert.rejects(crew.review({ name: 'feat-x', by: 'codex' }), /different worker/)
-  await assert.rejects(crew.review({ name: 'feat-x', by: 'pi:openai-codex' }), /different worker.*openai/)
-  const rExplicit = await crew.review({ name: 'feat-x', by: 'claude' })
-  assert.equal(rExplicit.worker, 'claude')
-
-  const agyClaude = store.create('agy-c', dir, 'claude-sonnet-4-6', 'Agy running Claude', null, 'agy')
-  store.accept(agyClaude, 'write')
-  store.finish(agyClaude.id, 1, 'done', 'Done', store.assistant(agyClaude.id, 1, 'done'))
-  settings.allow = ['agy', 'claude', 'codex']
-  detectMap = {
-    claude: { installed: true, capability: 'full', loginStatus: 'ready', models: [{ id: 'opus' }], defaultModel: 'opus' },
-    codex: { installed: true, capability: 'full', loginStatus: 'ready', models: [{ id: 'gpt-6.1-sol' }], defaultModel: 'gpt-6.1-sol' }
-  }
-  const rModelVendor = await crew.review({ name: 'agy-c' })
-  assert.equal(rModelVendor.worker, 'codex')
-
-  settings.allow = ['codex', 'pi:openai-codex']
-  await assert.rejects(crew.review({ name: 'feat-x' }), /No cross-vendor reviewer.*allowed: codex, pi:openai-codex.*--by/)
-
-  settings.allow = ['codex', 'claude', 'agy']
-  detectMap = {
-    claude: { installed: true, capability: 'full', loginStatus: 'signed-out', models: [{ id: 'opus' }] },
-    agy: { installed: false, capability: 'full', loginStatus: 'not-installed', models: [] }
-  }
-  await assert.rejects(crew.review({ name: 'feat-x' }), /No ready cross-vendor reviewer.*claude: signed-out.*agy: not-installed.*--by/)
 })
 
 test('CLI review without --by automatically picks a ready cross-vendor worker including claude', async t => {

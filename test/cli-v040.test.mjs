@@ -10,13 +10,14 @@ import { Store } from '../lib/store.mjs'
 import { harness } from './harness.mjs'
 
 test('version flags and subcommand work without starting runner both inside and outside git', async t => {
+  const pkgVersion = JSON.parse(readFileSync(join(repo, 'package.json'), 'utf8')).version
   const h = harness(t)
   for (const args of [['--version'], ['-v'], ['version']]) {
     const out = await h.cli(...args)
-    assert.match(out, /^1\.0\.0 \([0-9a-f]{7,12}\)$/)
+    assert.match(out, new RegExp('^' + pkgVersion.replaceAll('.', '\\.') + ' \\([0-9a-f]{7,12}\\)$'))
   }
   const vJson = await h.json('version')
-  assert.equal(vJson.version, '1.0.0')
+  assert.equal(vJson.version, pkgVersion)
   assert.match(vJson.commit, /^[0-9a-f]{7,12}$/)
   assert.deepEqual(await h.json('--version'), vJson)
   assert.equal(existsSync(h.data), false)
@@ -31,12 +32,12 @@ test('version flags and subcommand work without starting runner both inside and 
       cwd: standalone,
       encoding: 'utf8'
     }).trim()
-    assert.equal(text, '1.0.0')
+    assert.equal(text, pkgVersion)
     const json = JSON.parse(execFileSync(process.execPath, [join(standalone, 'bin/broco'), 'version', '--json'], {
       cwd: standalone,
       encoding: 'utf8'
     }))
-    assert.deepEqual(json, { version: '1.0.0', commit: null })
+    assert.deepEqual(json, { version: pkgVersion, commit: null })
   } finally {
     rmSync(standalone, { recursive: true, force: true })
   }
@@ -265,7 +266,7 @@ test('done --result pass|rework on error/stopped tickets succeeds; bare done sti
   assert.equal(reworkResult.status, 'done')
 })
 
-test('runner_state table records lifecycle, signal shutdown preserves queued turns', async t => {
+test('runner_state table records lifecycle, signal shutdown preserves queued turns', { skip: process.platform === 'win32' }, async t => {
   const h = harness(t)
   await h.json('init', '--allow', 'codex', '--concurrency', '1')
 

@@ -33,6 +33,7 @@ test('project identity, marker precedence, longest registered prefix, move and c
   assert.equal(JSON.parse(await h.at(nested,'init','--json')).id, other.id)
   assert.equal((await h.json('init')).id,parent.id)
   const moved = join(h.base,'moved'), copied = join(h.base,'copied')
+  if (process.platform === 'win32') await h.at(nested,'stop','same')
   renameSync(nested,moved)
   assert.equal(JSON.parse(await h.at(moved,'show','same','--json')).reply,'nested')
   cpSync(moved,copied,{recursive:true})
@@ -40,7 +41,7 @@ test('project identity, marker precedence, longest registered prefix, move and c
   const unrelated = join(h.base,'work-2')
   mkdirSync(unrelated)
   await assert.rejects(h.at(unrelated,'ls'),/broco init/)
-  symlinkSync(join(moved,'.broco'),join(unrelated,'.broco'))
+  symlinkSync(join(moved,'.broco'),join(unrelated,'.broco'),process.platform === 'win32' ? 'junction' : 'dir')
   await assert.rejects(h.at(unrelated,'init'),/Expected a .broco directory/)
 })
 

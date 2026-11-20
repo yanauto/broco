@@ -49,6 +49,8 @@ pi auth check --provider openai-codex --no-refresh
 pi --list-models
 ```
 
+Across macOS, Linux, and Windows, `pi` workers run directly with isolated session storage (`~/.broco/sessions`) and stripped host-session environment variables (macOS `sandbox-exec` is used only in isolated `.sandbox` profile runs to fence `~/.pi`).
+
 ## Choose per ticket
 
 ```sh

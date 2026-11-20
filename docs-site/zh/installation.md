@@ -4,7 +4,7 @@
 
 ## 准备环境
 
-需要 macOS 或 Linux、Node.js 24+，以及至少两个你已在本机登录好的 AI CLI（例如 Claude Code、Codex、Antigravity `agy`、Cursor Agent 或 `pi`）。使用独立 worktree 和自定义模板试跑需要 Git。
+需要 macOS、Linux 或 Windows 11、Node.js 24+（内置 `node:sqlite` 所需）、Git（Windows 11 需安装 Git for Windows），以及至少两个你已在本机登录好的 AI CLI（例如 Claude Code、Codex、Antigravity `agy`、Cursor Agent 或 `pi`）。独立 worktree 与自定义模板试跑均依赖 Git。
 
 ```sh
 node --version
@@ -25,6 +25,14 @@ broco setup
 4. 将开放 `SKILL.md` 安装至 `~/.agents/skills/broco/`，并自动同步挂载到已探测到的宿主 harness（**Claude Code**、**Codex**、**Cursor**、**Antigravity**、**OpenCode**、**Pi**——同时为 Pi 链接 `~/.pi/agent/skills/broco` 并支持 `PI_CODING_AGENT_DIR`）。
 
 升级 `broco` 或切换 Node 版本后重新执行一次 `broco setup` 即可。若已打开的对话框未立即读到技能，重开该会话即可生效。
+
+## Windows 11 说明
+
+- **原生终端与 WSL2 边界**：`broco` 原生运行于 PowerShell（`pwsh` 与 Windows PowerShell 5.1）、Windows Terminal 及 `cmd`，状态保存在 `%USERPROFILE%\.broco`，通过 Windows 命名管道（`\\.\pipe\broco-*`）通信。WSL2 则作为独立 Linux 环境通过 Linux 后端运行，拥有各自独立的 Node.js 24+、`~/.broco/` 与 CLI——请在你的编程 CLI 实际安装所在的一侧运行 `broco`。
+- **固定启动器与 PowerShell 执行策略**：`broco setup` 会生成 `%USERPROFILE%\.agents\skills\broco\broco.cmd`，让宿主 Agent 直接调用 Node，避开 PowerShell `.ps1` 执行策略限制（在 PowerShell 中调用带引号路径需加 `& ` 前缀，例如 `& "C:\Users\you\.agents\skills\broco\broco.cmd" roster --json`）。若在 PowerShell 手动敲 `broco` 遇到 npm 全局 `broco.ps1` 的 `PSSecurityException` 拦截，执行 `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` 或改调 `broco.cmd` 即可。
+- **直接解析 CLI 与垫片**：优先按 `PATHEXT` 直接解析 `.exe` 可执行文件并将 npm `.cmd`/`.bat` Node 垫片直连至 `node.exe`，免除 shell 引号转义问题；遇到非 Node 的 `.cmd`/`.bat` 包装脚本（如内部调用 PowerShell 脚本的 `.cmd` 启动器）时经 `ComSpec`（`cmd.exe`）平滑回退。
+- **PowerShell 与 `cmd` 下的多行题面**：Windows PowerShell 与 `cmd` 不支持 POSIX `<<'EOF'` heredoc。请使用全平台通用的 `--file prompt.md`，或在 PowerShell 中用单引号 here-string 管道（`@' ... '@ | broco say 名字 - --bg --json`）。
+- **免管理员挂载 Pi 技能与工人隔离**：使用 NTFS 目录联接（junction）链接 `%USERPROFILE%\.pi\agent\skills\broco`，无需管理员权限（受限环境自动回退为复制 `SKILL.md`）。在 macOS、Linux 与 Windows 三端，常规 `pi` 工人均使用独立的会话目录（`~/.broco/sessions`）并剥离宿主环境变量直接运行（macOS `sandbox-exec` 仅在内部 `.sandbox` 隔离模式下用于保护个人 `~/.pi`）。
 
 ## L0 免 `init` 与可选 L1 `init`
 

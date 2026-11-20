@@ -4,7 +4,7 @@ Install `broco` once on your machine to let your coding harnesses work together.
 
 ## What you need
 
-Use macOS or Linux with Node.js 24 or newer and at least two AI CLIs you already signed into locally (for example Claude Code, Codex, Antigravity `agy`, Cursor Agent, or `pi`). Git is required for isolated worktrees and custom-template trials.
+Use macOS, Linux, or Windows 11 with Node.js 24 or newer (required for built-in `node:sqlite`), Git (Git for Windows on Windows 11), and at least two AI CLIs you already signed into locally (for example Claude Code, Codex, Antigravity `agy`, Cursor Agent, or `pi`). Git is required for isolated worktrees and custom-template trials.
 
 ```sh
 node --version
@@ -25,6 +25,14 @@ broco setup
 4. Installs one open `SKILL.md` into `~/.agents/skills/broco/` and links or syncs it into your detected host harnesses (**Claude Code**, **Codex**, **Cursor**, **Antigravity**, **OpenCode**, and **Pi** — linking `~/.pi/agent/skills/broco` and respecting `PI_CODING_AGENT_DIR`).
 
 Run `broco setup` again after upgrading `broco` or switching Node installations. If an open chat does not pick up the skill right away, reopen that host session.
+
+## Windows 11 notes
+
+- **Native shells vs WSL2:** `broco` runs natively in PowerShell (`pwsh` and Windows PowerShell 5.1), Windows Terminal, and `cmd`, storing state in `%USERPROFILE%\.broco` over Windows Named Pipes (`\\.\pipe\broco-*`). WSL2 runs independently via the Linux backend with its own Linux Node.js 24+, `~/.broco/`, and Linux-installed CLIs — run `broco` in the same environment where your coding CLIs live.
+- **Pinned launcher & PowerShell `ExecutionPolicy`:** `broco setup` writes `%USERPROFILE%\.agents\skills\broco\broco.cmd` so agent hosts invoke Node directly without hitting PowerShell `.ps1` restrictions (in PowerShell, prefix a quoted launcher path with `& `, e.g. `& "C:\Users\you\.agents\skills\broco\broco.cmd" roster --json`). If typing `broco` interactively in PowerShell hits a `PSSecurityException` on npm’s global `broco.ps1` shim, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` or call `broco.cmd`.
+- **Direct CLI & shim resolution:** Prioritizes `PATHEXT` to resolve `.exe` binaries and unwrap npm `.cmd`/`.bat` Node shims directly to `node.exe` without shell quoting issues, falling back cleanly via `ComSpec` (`cmd.exe`) for non-Node `.cmd`/`.bat` wrappers (such as `.cmd` launchers that delegate to PowerShell scripts).
+- **Multi-line prompts in PowerShell & `cmd`:** POSIX `<<'EOF'` heredocs do not exist in PowerShell or `cmd`. Pass `--file prompt.md` (works in every shell) or pipe a single-quoted PowerShell here-string (`@' ... '@ | broco say NAME - --bg --json`).
+- **Admin-free Pi skill links & worker isolation:** Links `%USERPROFILE%\.pi\agent\skills\broco` via an NTFS directory junction without administrator privileges (with a `SKILL.md` copy fallback if restricted). Across macOS, Linux, and Windows, normal `pi` workers run directly with isolated session paths (`~/.broco/sessions`) and stripped host-session variables (macOS `sandbox-exec` is used only in isolated `.sandbox` profile runs to fence `~/.pi`).
 
 ## L0 zero-init vs optional L1 init
 

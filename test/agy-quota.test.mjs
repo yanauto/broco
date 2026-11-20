@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict'
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { delimiter, join } from 'node:path'
 import test from 'node:test'
 import { agyQuota, codexQuota, quotaText, tight, windowLabel } from '../lib/quota.mjs'
 import { clearDetectCache, detectCli, discoverPi, readAgyQuota } from '../lib/detect.mjs'
 import { Store } from '../lib/store.mjs'
+import { writeFakeCli } from './harness.mjs'
 
 const sampleUsage = {
   status: 'SUCCESS',
@@ -148,11 +149,9 @@ test('detectCli runs agy probes in parallel, caches by env key, supports refresh
     '}',
     'process.exit(2)'
   ].join('\n')
-  writeFileSync(join(binA, 'agy'), scriptA)
-  chmodSync(join(binA, 'agy'), 0o755)
+  writeFakeCli(binA, 'agy', scriptA)
 
   const scriptB = [
-    '#!/usr/bin/env node',
     'const args = process.argv.slice(2)',
     "if (args.includes('--version')) { console.log('agy 2.0.0-swapped'); process.exit(0) }",
     "if (args.includes('models')) { console.log('claude-sonnet-4-6\\tClaude Sonnet 4.6'); process.exit(0) }",
@@ -160,9 +159,8 @@ test('detectCli runs agy probes in parallel, caches by env key, supports refresh
     "if (args.includes('/model')) { console.log(JSON.stringify({ status: 'SUCCESS', command: { data: { id: 'claude-sonnet-4-6' } } })); process.exit(0) }",
     "if (args.includes('/usage')) { console.log(JSON.stringify({ status: 'SUCCESS', command: { name: 'usage', data: { groups: [{ name: 'Gemini Models', buckets: [{ id: 'g-5h', window: '5h', remaining_fraction: 0.5, reset_time: '2026-11-17T21:06:25Z' }] }] } } })); process.exit(0) }",
     'process.exit(2)'
-  ].join('\n')
-  writeFileSync(join(binB, 'agy'), scriptB)
-  chmodSync(join(binB, 'agy'), 0o755)
+  ]
+  writeFakeCli(binB, 'agy', scriptB)
 
   const originalPath = process.env.PATH
   t.after(() => {
@@ -172,7 +170,7 @@ test('detectCli runs agy probes in parallel, caches by env key, supports refresh
   })
 
   clearDetectCache()
-  process.env.PATH = binA + ':' + originalPath
+  process.env.PATH = binA + delimiter + originalPath
   const first = await detectCli('agy', work)
   assert.equal(first.version, 'agy 1.5.10')
   assert.equal(first.defaultModel, 'gemini-4-argon-medium')
@@ -196,7 +194,7 @@ test('detectCli runs agy probes in parallel, caches by env key, supports refresh
   const refreshed = await detectCli('agy', work, { refresh: true })
   assert.equal(refreshed.quota.windows[0].usedPercent, 20)
 
-  process.env.PATH = binB + ':' + originalPath
+  process.env.PATH = binB + delimiter + originalPath
   const swapped = await detectCli('agy', work)
   assert.equal(swapped.version, 'agy 2.0.0-swapped')
   assert.equal(swapped.defaultModel, 'claude-sonnet-4-6')
@@ -204,7 +202,7 @@ test('detectCli runs agy probes in parallel, caches by env key, supports refresh
   assert.equal(swapped.quota.plentiful, false)
 
   clearDetectCache()
-  process.env.PATH = binA + ':' + originalPath
+  process.env.PATH = binA + delimiter + originalPath
   assert.equal((await detectCli('agy', work)).version, 'agy 1.5.10')
 })
 
@@ -216,7 +214,6 @@ test('detectCli populates pi reasoning model efforts from get_available_thinking
   const noLevelsFlag = join(root, 'no-levels')
 
   const fakePi = [
-    '#!/usr/bin/env node',
     "import { existsSync } from 'node:fs'",
     "import { createInterface } from 'node:readline'",
     `const noLevels = ${JSON.stringify(noLevelsFlag)}`,
@@ -235,9 +232,8 @@ test('detectCli populates pi reasoning model efforts from get_available_thinking
     '    }',
     '  }',
     '}'
-  ].join('\n')
-  writeFileSync(join(bin, 'pi'), fakePi)
-  chmodSync(join(bin, 'pi'), 0o755)
+  ]
+  writeFakeCli(bin, 'pi', fakePi)
 
   const originalPath = process.env.PATH
   t.after(() => {
@@ -247,7 +243,7 @@ test('detectCli populates pi reasoning model efforts from get_available_thinking
   })
 
   clearDetectCache()
-  process.env.PATH = bin + ':' + originalPath
+  process.env.PATH = bin + delimiter + originalPath
   assert.deepEqual(await discoverPi(work), ['pi:zai-coding-cn'])
   const detected = await detectCli('pi:zai-coding-cn', work)
   assert.deepEqual(detected.models[0].efforts, ['low', 'medium', 'high', 'xhigh'])

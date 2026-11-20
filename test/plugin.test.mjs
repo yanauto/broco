@@ -29,7 +29,7 @@ function modelResponse(res, model, index, command, background = false) {
   res.end()
 }
 
-test('installed user skill dispatches with minimal PATH and receives a native background notification', { timeout: 90000 }, async t => {
+test('installed user skill dispatches with minimal PATH and receives a native background notification', { timeout: 90000, skip: process.platform === 'win32' }, async t => {
   if (!hasExecutable('claude')) return t.skip('claude CLI is not installed on PATH')
   const h = harness(t)
   await h.cli('init','--allow','pi:deepseek','--default-worker','pi:deepseek')

@@ -50,7 +50,7 @@ for (const [release, protocol] of [['0.1.0', 4], ['M2', 6], ['0.2.0', 7], ['0.3.
   })
 }
 
-test('upgrade from 0.4.0 legacy /tmp/cc-bro-<uid>-<key>.sock guards active work, reports status, and shuts down cleanly', async t => {
+test('upgrade from 0.4.0 legacy /tmp/cc-bro-<uid>-<key>.sock guards active work, reports status, and shuts down cleanly', { skip: process.platform === 'win32' }, async t => {
   const h = harness(t)
   const newSocket = socketFor(h.data)
   const legacySocket = legacySocketFor(newSocket)
@@ -96,7 +96,7 @@ test('upgrade from 0.4.0 legacy /tmp/cc-bro-<uid>-<key>.sock guards active work,
   }
 })
 
-test('upgrade from 0.4.1 legacy /tmp/cc-bro-<uid>/s-<key>.sock shuts down cleanly', async t => {
+test('upgrade from 0.4.1 legacy /tmp/cc-bro-<uid>/s-<key>.sock shuts down cleanly', { skip: process.platform === 'win32' }, async t => {
   const h = harness(t)
   const newSocket = socketFor(h.data)
   const legacyDirSocket = legacySocketsFor(newSocket)[0]

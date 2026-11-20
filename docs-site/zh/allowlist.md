@@ -1,8 +1,8 @@
 # 全局与项目策略
 
-`broco` 默认采用 L0 零 `init` 模式：装完在 `broco setup` 一步确认全局允许名单，即可在任意仓库直接开跑。只有当特定项目需要硬隔离名单、独立并发池或重度经理模式时，才按需启用 L1 `broco init`。
+`broco` 默认采用 L0 免 `init` 模式：装完在 `broco setup` 一步确认全局允许名单，即可在任意仓库直接开跑。只有当特定项目需要硬隔离名单、独立并发池或重度经理模式时，才按需启用 L1 `broco init`。
 
-## L0：全局策略（免 `init`、零仓库污染）
+## L0：全局策略（免 `init`、仓库保持干净）
 
 运行 `broco setup` 时由你显式确认全局允许名单（例如 `claude,codex,agy,cursor-agent`）。每个 `pi:<厂商>` 都是独立权限，放行 `codex` 不会顺带放行 `pi:openai-codex`。
 

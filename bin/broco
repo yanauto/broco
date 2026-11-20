@@ -242,8 +242,10 @@ function offlineStatus(targetCwd, probe, all) {
         if (dirname(root) === root) break
       }
       if (!resolvedId) {
+        const norm = p => process.platform === 'win32' ? p.toLowerCase() : p
+        const realNorm = norm(real)
         const prefixMatch = rawProjects
-          .filter(p => real === p.repoPath || real.startsWith(p.repoPath + sep))
+          .filter(p => realNorm === norm(p.repoPath) || realNorm.startsWith(norm(p.repoPath) + sep))
           .sort((a, b) => b.repoPath.length - a.repoPath.length)[0]
         if (prefixMatch) resolvedId = prefixMatch.id
       }

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { execFile, execFileSync } from 'node:child_process'
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { delimiter, join } from 'node:path'
 import test from 'node:test'
 import { promisify } from 'node:util'
 import { claudeAttachments, describeAttachments, formatAttachmentPrompt } from '../lib/attachments.mjs'
@@ -12,6 +12,7 @@ import { Store } from '../lib/store.mjs'
 import { agyModel, claudeResetEpoch } from '../lib/stream-workers.mjs'
 import { presets, validateTemplate } from '../lib/templates.mjs'
 import { createTree } from '../lib/worktree.mjs'
+import { writeFakeCli } from './harness.mjs'
 
 const exec = promisify(execFile)
 
@@ -105,9 +106,7 @@ test('agy streamTurn hides prompt from argv/ps, resolves models, deduplicates ac
   mkdirSync(attachA)
   mkdirSync(attachB)
 
-  const fakeAgy = join(bin, 'agy')
-  writeFileSync(fakeAgy, [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'agy', [
     "import { execFileSync } from 'node:child_process'",
     "import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs'",
     "import { join } from 'node:path'",
@@ -172,8 +171,7 @@ test('agy streamTurn hides prompt from argv/ps, resolves models, deduplicates ac
     '}',
     "emit({ event: 'step_update', step_update: { conversation_id: cid, step_index: 4, state: 'DONE', step_type: 'agent_response', duration_seconds: 0.3 } })",
     "emit({ event: 'result', result: { conversation_id: cid, status: 'SUCCESS', response: 'final-answer', usage: { input_tokens: 120, output_tokens: 20, thinking_tokens: 0, cache_read_tokens: 300, total_tokens: 140 } } })"
-  ].join('\n'))
-  chmodSync(fakeAgy, 0o755)
+  ])
 
   const attachments = [
     { path: join(attachA, 'chart.png'), kind: 'image', name: 'chart.png' },
@@ -216,7 +214,7 @@ test('agy streamTurn hides prompt from argv/ps, resolves models, deduplicates ac
 
   const secretPrompt = 'TOP_SECRET_PROMPT_88421\nInspect all attached files.'
   const out = await runInChild(
-    { PATH: bin + ':' + process.env.PATH },
+    { PATH: bin + delimiter + process.env.PATH },
     childCode,
     { work, marker: join(dir, 'marker'), secretPrompt, attachments }
   )
@@ -302,9 +300,7 @@ test('codex worktree turns grant writable access to main repo commonGitDir in ap
   const tree = createTree(mainRepo, stateDir, 'wt-commit')
   const expectedCommonGit = realpathSync(join(mainRepo, '.git'))
 
-  const fakeCodex = join(bin, 'codex')
-  writeFileSync(fakeCodex, [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'codex', [
     "import { appendFileSync } from 'node:fs'",
     "import { createInterface } from 'node:readline'",
     'const args = process.argv.slice(2)',
@@ -338,8 +334,7 @@ test('codex worktree turns grant writable access to main repo commonGitDir in ap
     '  process.exit(0)',
     '}',
     'process.exit(2)'
-  ].join('\n'))
-  chmodSync(fakeCodex, 0o755)
+  ])
 
   const logFile = join(dir, 'codex-calls.jsonl')
   const code = [
@@ -353,7 +348,7 @@ test('codex worktree turns grant writable access to main repo commonGitDir in ap
   ].join('\n')
 
   await runInChild(
-    { PATH: bin + ':' + process.env.PATH, FAKE_CODEX_LOG: logFile },
+    { PATH: bin + delimiter + process.env.PATH, FAKE_CODEX_LOG: logFile },
     code,
     { cwd: tree.cwd, marker: join(dir, 'codex-marker') }
   )
@@ -377,7 +372,7 @@ test('codex worktree turns grant writable access to main repo commonGitDir in ap
   assert.equal(logged[2].params.config, undefined)
 })
 
-test('site/deploy.sh remote verification block logs unified diff and HTTP status before rollback', async t => {
+test('site/deploy.sh remote verification block logs unified diff and HTTP status before rollback', { skip: process.platform === 'win32' }, async t => {
   const dir = makeTemp(t)
   const deployText = readFileSync(join(repo, 'site/deploy.sh'), 'utf8')
   const remoteScript = deployText.split("<<'REMOTE'\n")[1].split('\nREMOTE')[0]

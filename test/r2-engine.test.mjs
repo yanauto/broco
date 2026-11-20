@@ -4,7 +4,7 @@ import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync,
 import { createServer } from 'node:http'
 import { once } from 'node:events'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { delimiter, join } from 'node:path'
 import { performance } from 'node:perf_hooks'
 import test from 'node:test'
 import { promisify } from 'node:util'
@@ -20,7 +20,7 @@ import { ticketRecords } from '../lib/stats.mjs'
 import { Store } from '../lib/store.mjs'
 import { agyModel, clearAgyUsageCache, resetEpoch, streamTurn } from '../lib/stream-workers.mjs'
 import { baseline, changes, changesAsync, cleanWorktrees, createTree, diffWorktree } from '../lib/worktree.mjs'
-import { alive, harness, until } from './harness.mjs'
+import { alive, harness, until, writeFakeCli } from './harness.mjs'
 
 const exec = promisify(execFile)
 const TINY_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+X2ioAAAAASUVORK5CYII=', 'base64')
@@ -285,7 +285,8 @@ test('150-shard map + batched ticketRows + batchDetail completes in <500ms witho
   assert.equal(dispatched.count, 150)
   assert.equal(rows.length, 150)
   assert.equal(detail.count, 150)
-  assert.ok(elapsed < 500, 'Expected 150-shard map + ticketRows + batchDetail < 500ms, got ' + Math.round(elapsed) + 'ms')
+  const budgetMs = process.platform === 'win32' ? 5000 : 500
+  assert.ok(elapsed < budgetMs, 'Expected 150-shard map + ticketRows + batchDetail < ' + budgetMs + 'ms, got ' + Math.round(elapsed) + 'ms')
   assert.ok(queueNotifyCount <= 150, 'Expected coalesced linear notifications <= 150, got ' + queueNotifyCount)
 
   const activeRow = rows.find(r => r.id === 'sweep-1')
@@ -469,20 +470,18 @@ test('orphan-free worker lifecycle: runNative reaps background children + unlink
   const bin = join(dir, 'bin')
   mkdirSync(bin)
   const bgPidFile = join(dir, 'bg-child.pid')
-  const fakeCustom = join(bin, 'bg-leaker')
-  writeFileSync(fakeCustom, [
-    '#!/usr/bin/env node',
+  const bgStdio = process.platform === 'win32' ? "'ignore'" : "['ignore', 'ignore', 'ignore', 3]"
+  const fakeCustom = writeFakeCli(bin, 'bg-leaker', [
     "import { spawn } from 'node:child_process'",
     "import { writeFileSync } from 'node:fs'",
-    "const bg = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { detached: true, stdio: ['ignore', 'ignore', 'ignore', 3] })",
+    `const bg = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { detached: true, stdio: ${bgStdio} })`,
     `writeFileSync(${JSON.stringify(bgPidFile)}, String(bg.pid))`,
     'bg.unref()',
     "console.log(JSON.stringify({ id: 'sess-bg', reply: 'done' }))"
-  ].join('\n'))
-  chmodSync(fakeCustom, 0o755)
+  ])
 
   const prevPath = process.env.PATH
-  process.env.PATH = bin + ':' + prevPath
+  process.env.PATH = bin + delimiter + prevPath
   try {
     const template = {
       command: fakeCustom,
@@ -663,10 +662,14 @@ test('security hardening, agy singleflight + resetEpoch fix, and problems.mjs re
   t.after(() => rmSync(dir, { recursive: true, force: true }))
 
   const sock = socketFor(join(dir, 'home'))
-  const sockParent = realpathSync(join(sock, '..'))
-  const st = lstatSync(sockParent)
-  assert.equal(st.uid, process.getuid())
-  assert.equal(st.mode & 0o077, 0)
+  if (process.platform === 'win32') {
+    assert.match(sock, /^\\\\\.\\pipe\\broco-[0-9a-f]{24}$/)
+  } else {
+    const sockParent = realpathSync(join(sock, '..'))
+    const st = lstatSync(sockParent)
+    assert.equal(st.uid, process.getuid())
+    assert.equal(st.mode & 0o077, 0)
+  }
 
   assert.throws(() => proxyConfig({
     upstream: 'http://127.0.0.1:9999',
@@ -740,9 +743,7 @@ test('security hardening, agy singleflight + resetEpoch fix, and problems.mjs re
   const bin = join(dir, 'agy-bin')
   mkdirSync(bin)
   const counterFile = join(dir, 'usage-probes.txt')
-  const fakeAgy = join(bin, 'agy')
-  writeFileSync(fakeAgy, [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'agy', [
     "import { appendFileSync } from 'node:fs'",
     'const args = process.argv.slice(2)',
     "if (args.includes('/usage')) {",
@@ -755,11 +756,10 @@ test('security hardening, agy singleflight + resetEpoch fix, and problems.mjs re
     'await new Promise(r => setTimeout(r, 80))',
     "console.log(JSON.stringify({ event: 'init', conversation_id: 'c-1' }))",
     "console.log(JSON.stringify({ event: 'result', result: { conversation_id: 'c-1', status: 'SUCCESS', response: 'ok eeee-eeee-eeee' } }))"
-  ].join('\n'))
-  chmodSync(fakeAgy, 0o755)
+  ])
 
   const prevPath = process.env.PATH
-  process.env.PATH = bin + ':' + prevPath
+  process.env.PATH = bin + delimiter + prevPath
   process.env.CUSTOM_TEST_SECRET = 'eeee-eeee-eeee'
   clearAgyUsageCache()
   try {

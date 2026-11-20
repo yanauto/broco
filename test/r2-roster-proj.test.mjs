@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { delimiter, join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
@@ -19,6 +19,7 @@ import { rosterOutput, rosterText } from '../lib/roster-output.mjs'
 import { Store } from '../lib/store.mjs'
 import { packageBoard } from '../scripts/package-board.mjs'
 import { validateModelCatalog } from '../scripts/sync-model-catalog.mjs'
+import { prependPath, writeFakeCli } from './harness.mjs'
 
 const worktreeRoot = realpathSync(fileURLToPath(new URL('../', import.meta.url)))
 
@@ -27,42 +28,67 @@ test('sanitizeSetupPath, setupInfo, and setup strip ephemeral/shim dirs while pr
   const tempRoot = mkdtempSync(join(tmpdir(), 'cc-bro-setup-'))
   try {
     const fixtureDir = join(worktreeRoot, 'test', 'fixtures')
-    const raw = [
-      '/tmp/ephemeral-bin',
-      '/private/tmp/ephemeral-bin-2',
-      '/var/folders/ab/cd/T/temp-bin',
-      '/private/var/folders/ab/cd/T/temp-bin',
-      '/Users/demo/project/node_modules/.bin',
-      '/Users/demo/.npm/_npx/abcd/node_modules/.bin',
-      '/Users/demo/cc-bro/.sandbox/profile-1/bin',
-      fixtureDir,
-      realDir,
-      realDir,
-      '/nonexistent/cc-bro-path-xyz',
-      '/usr/bin'
-    ].join(':')
+    if (process.platform === 'win32') {
+      const rawWin = [
+        'C:\\Users\\demo\\AppData\\Local\\Temp\\ephemeral-bin',
+        'C:\\Windows\\Temp\\ephemeral-bin-2',
+        'C:\\Users\\demo\\project\\node_modules\\.bin',
+        'C:\\Users\\demo\\AppData\\Local\\npm-cache\\_npx\\abcd\\node_modules\\.bin',
+        'C:\\Users\\demo\\cc-bro\\.sandbox\\profile-1\\bin',
+        fixtureDir,
+        realDir,
+        realDir.toLowerCase(),
+        'C:\\nonexistent\\cc-bro-path-xyz',
+        'C:\\Program Files\\nodejs'
+      ].join(';')
+      const prodClean = sanitizeSetupPath(rawWin, { nodeDir: 'C:\\Program Files\\nodejs', isIsolated: false })
+      assert.deepEqual(prodClean.split(';'), ['C:\\Program Files\\nodejs', realDir])
+      const isolatedClean = sanitizeSetupPath(rawWin, { nodeDir: 'C:\\Program Files\\nodejs', isIsolated: true })
+      assert.deepEqual(isolatedClean.split(';'), ['C:\\Program Files\\nodejs', fixtureDir, realDir])
+    } else {
+      const raw = [
+        '/tmp/ephemeral-bin',
+        '/private/tmp/ephemeral-bin-2',
+        '/var/folders/ab/cd/T/temp-bin',
+        '/private/var/folders/ab/cd/T/temp-bin',
+        '/Users/demo/project/node_modules/.bin',
+        '/Users/demo/.npm/_npx/abcd/node_modules/.bin',
+        '/Users/demo/cc-bro/.sandbox/profile-1/bin',
+        fixtureDir,
+        realDir,
+        realDir,
+        '/nonexistent/cc-bro-path-xyz',
+        '/usr/bin'
+      ].join(':')
 
-    const prodClean = sanitizeSetupPath(raw, { nodeDir: '/usr/bin', isIsolated: false })
-    assert.deepEqual(prodClean.split(':'), ['/usr/bin', realDir])
+      const prodClean = sanitizeSetupPath(raw, { nodeDir: '/usr/bin', isIsolated: false })
+      assert.deepEqual(prodClean.split(':'), ['/usr/bin', realDir])
 
-    const isolatedClean = sanitizeSetupPath(raw, { nodeDir: '/usr/bin', isIsolated: true })
-    assert.deepEqual(isolatedClean.split(':'), ['/usr/bin', fixtureDir, realDir])
+      const isolatedClean = sanitizeSetupPath(raw, { nodeDir: '/usr/bin', isIsolated: true })
+      assert.deepEqual(isolatedClean.split(':'), ['/usr/bin', fixtureDir, realDir])
+    }
 
     const cfgDir = join(tempRoot, 'claude-cfg')
     const dataDir = join(tempRoot, 'broco-home')
+    const badTemp = process.platform === 'win32' ? 'C:\\Users\\demo\\AppData\\Local\\Temp\\bad' : '/tmp/bad'
+    const baseBins = process.platform === 'win32' ? [process.env.SystemRoot ? join(process.env.SystemRoot, 'System32') : 'C:\\Windows\\System32'] : ['/usr/bin', '/bin']
+    const setupEnv = {
+      ...process.env,
+      BROCO_HOST_HOME: tempRoot,
+      CLAUDE_CONFIG_DIR: cfgDir,
+      BROCO_HOME: dataDir
+    }
+    for (const k of Object.keys(setupEnv)) {
+      if (k !== 'PATH' && k.toLowerCase() === 'path') delete setupEnv[k]
+    }
+    setupEnv.PATH = [badTemp, join(worktreeRoot, 'node_modules', '.bin'), fixtureDir, ...baseBins].join(delimiter)
     const out = JSON.parse(execFileSync(process.execPath, [
       '--input-type=module',
       '-e',
       'import { setup, setupInfo } from "./lib/setup.mjs"; const info = setupInfo(); const s = setup(); console.log(JSON.stringify({ info, s }))'
     ], {
       cwd: worktreeRoot,
-      env: {
-        ...process.env,
-        BROCO_HOST_HOME: tempRoot,
-        CLAUDE_CONFIG_DIR: cfgDir,
-        BROCO_HOME: dataDir,
-        PATH: '/tmp/bad:' + join(worktreeRoot, 'node_modules/.bin') + ':' + fixtureDir + ':/usr/bin:/bin'
-      },
+      env: setupEnv,
       encoding: 'utf8'
     }).trim())
 
@@ -70,8 +96,9 @@ test('sanitizeSetupPath, setupInfo, and setup strip ephemeral/shim dirs while pr
     assert.equal(existsSync(out.info.launcher), true)
     assert.equal(existsSync(out.info.skillPath), true)
     const launcherText = readFileSync(out.info.launcher, 'utf8')
-    const exportLine = launcherText.split('\n').find(l => l.startsWith('export PATH='))
-    assert.doesNotMatch(exportLine, /\/tmp\/bad|node_modules\/\.bin|test\/fixtures/)
+    const pathLine = launcherText.split(/\r?\n/).find(l => l.startsWith('export PATH=') || l.startsWith('set "PATH='))
+    assert.ok(pathLine)
+    assert.doesNotMatch(pathLine, /\/tmp\/bad|Temp\\bad|node_modules[\\/]\.bin|test[\\/]fixtures/i)
     assert.match(readFileSync(out.info.skillPath, 'utf8'), /broco/)
   } finally {
     rmSync(realDir, { recursive: true, force: true })
@@ -79,7 +106,7 @@ test('sanitizeSetupPath, setupInfo, and setup strip ephemeral/shim dirs while pr
   }
 })
 
-test('install-local.sh unsets npm_config_prefix hazards and strips node_modules/.bin before setup', () => {
+test('install-local.sh unsets npm_config_prefix hazards and strips node_modules/.bin before setup', { skip: process.platform === 'win32' }, () => {
   const root = mkdtempSync(join(tmpdir(), 'cc-bro-install-sh-'))
   try {
     const fakeRepo = join(root, 'repo')
@@ -99,7 +126,7 @@ test('install-local.sh unsets npm_config_prefix hazards and strips node_modules/
     const fakeNpm = [
       '#!/usr/bin/env node',
       "import { appendFileSync, writeFileSync } from 'node:fs'",
-      "import { join } from 'node:path'",
+      "import { delimiter, join } from 'node:path'",
       `const log = ${JSON.stringify(logFile)}, globalPrefix = ${JSON.stringify(globalPrefix)}`,
       'const args = process.argv.slice(2)',
       'appendFileSync(log, JSON.stringify({ tool: "npm", args, npm_config_prefix: process.env.npm_config_prefix ?? null, NPM_CONFIG_PREFIX: process.env.NPM_CONFIG_PREFIX ?? null, PREFIX: process.env.PREFIX ?? null, npm_config_local_prefix: process.env.npm_config_local_prefix ?? null }) + "\\n")',
@@ -147,7 +174,7 @@ test('install-local.sh unsets npm_config_prefix hazards and strips node_modules/
     assert.deepEqual(setupCall.args, ['setup'])
     assert.doesNotMatch(setupCall.PATH, /node_modules\/\.bin|\.npm\/_npx/)
   } finally {
-    rmSync(root, { recursive: true, force: true })
+    rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 })
   }
 })
 
@@ -178,7 +205,7 @@ test('packageBoard rebuilds ui automatically when dist is missing or older than 
     assert.equal(builds, 2)
     assert.equal(readFileSync(join(root, 'bundle/board/index.html'), 'utf8'), '<h1>v2</h1>')
   } finally {
-    rmSync(root, { recursive: true, force: true })
+    rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 })
   }
 })
 
@@ -282,27 +309,22 @@ test('detectCli shares 45s cache across fixture-free directories for agy/pi, pru
   mkdirSync(bin); mkdirSync(projA); mkdirSync(projB)
   const callsLog = join(root, 'calls.jsonl')
 
-  writeFileSync(join(bin, 'agy'), [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'agy', [
     "import { appendFileSync } from 'node:fs'",
     `appendFileSync(${JSON.stringify(callsLog)}, JSON.stringify({ cli: 'agy', args: process.argv.slice(2) }) + '\\n')`,
     'const args = process.argv.slice(2)',
     "if (args.includes('--version')) console.log('agy 1.6.0')",
     "else if (args.includes('models')) console.log('gemini-4-argon-medium\\tGemini 4 Argon')",
     "else console.log(JSON.stringify({ status: 'SUCCESS', command: { data: {} } }))"
-  ].join('\n'))
-  chmodSync(join(bin, 'agy'), 0o755)
+  ])
 
-  writeFileSync(join(bin, 'pi'), [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'pi', [
     "import { appendFileSync } from 'node:fs'",
     `appendFileSync(${JSON.stringify(callsLog)}, JSON.stringify({ cli: 'pi', args: process.argv.slice(2) }) + '\\n')`,
     "console.log('deepseek  deepseek-v4.1-flash  1M  384K  yes  yes')"
-  ].join('\n'))
-  chmodSync(join(bin, 'pi'), 0o755)
+  ])
 
-  writeFileSync(join(bin, 'codex'), [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'codex', [
     "import { appendFileSync } from 'node:fs'",
     "import { createInterface } from 'node:readline'",
     `const log = ${JSON.stringify(callsLog)}`,
@@ -322,18 +344,17 @@ test('detectCli shares 45s cache across fixture-free directories for agy/pi, pru
     '    process.exit(0)',
     '  }',
     '}'
-  ].join('\n'))
-  chmodSync(join(bin, 'codex'), 0o755)
+  ])
 
   const prevPath = process.env.PATH
   t.after(() => {
     process.env.PATH = prevPath
     clearDetectCache()
-    rmSync(root, { recursive: true, force: true })
+    rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 })
   })
 
   clearDetectCache()
-  process.env.PATH = bin + ':' + prevPath
+  process.env.PATH = bin + delimiter + prevPath
   await detectCli('agy', projA, { ttlMs: 2000 })
   await detectCli('agy', projB, { ttlMs: 2000 })
   await discoverPi(projA, { ttlMs: 2000 })
@@ -391,8 +412,7 @@ test('Roster surfaces native+observed quota failures, warns on filtered allowed 
   const bin = join(root, 'bin')
   mkdirSync(bin)
 
-  writeFileSync(join(bin, 'trial-ok'), [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'trial-ok', [
     "import { readFileSync, writeFileSync } from 'node:fs'",
     "import { join } from 'node:path'",
     'const args = process.argv.slice(2)',
@@ -404,11 +424,9 @@ test('Roster surfaces native+observed quota failures, warns on filtered allowed 
     '} else {',
     '  console.log(JSON.stringify({ id: args[1], reply: readFileSync(state, "utf8") }))',
     '}'
-  ].join('\n'))
-  chmodSync(join(bin, 'trial-ok'), 0o755)
+  ])
 
-  writeFileSync(join(bin, 'codex'), [
-    '#!/usr/bin/env node',
+  writeFakeCli(bin, 'codex', [
     "import { createInterface } from 'node:readline'",
     'const args = process.argv.slice(2)',
     "if (args.includes('--version')) { console.log('codex 1.0'); process.exit(0) }",
@@ -419,26 +437,27 @@ test('Roster surfaces native+observed quota failures, warns on filtered allowed 
     '  else if (msg.method === "config/read") process.stdout.write(JSON.stringify({ id: msg.id, result: { config: {} } }) + "\\n")',
     '  else if (msg.method === "account/read") { process.stdout.write(JSON.stringify({ id: msg.id, result: { account: null, requiresOpenaiAuth: true } }) + "\\n"); process.exit(0) }',
     '}'
-  ].join('\n'))
-  chmodSync(join(bin, 'codex'), 0o755)
+  ])
 
   const prevPath = process.env.PATH
+  let db
+  let store
   t.after(() => {
     process.env.PATH = prevPath
     clearDetectCache()
-    rmSync(root, { recursive: true, force: true })
+    store?.db.close()
+    db?.close()
+    rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 })
   })
   clearDetectCache()
-  process.env.PATH = bin + ':' + prevPath
+  process.env.PATH = bin + delimiter + prevPath
 
-  const db = new DatabaseSync(':memory:')
-  t.after(() => db.close())
+  db = new DatabaseSync(':memory:')
   db.exec('CREATE TABLE projects(id TEXT PRIMARY KEY,name TEXT,repoPath TEXT,created INTEGER,allow TEXT,worker TEXT,concurrency INTEGER)')
   const project = { id: 'p-1', name: 'demo', repoPath: root, allow: ['codex'], worker: 'codex', concurrency: null }
   db.prepare('INSERT INTO projects VALUES (?,?,?,?,?,?,?)').run(project.id, project.name, project.repoPath, Date.now(), JSON.stringify(project.allow), project.worker, null)
 
-  const store = new Store(false, join(root, 'tickets.sqlite'))
-  t.after(() => store.db.close())
+  store = new Store(false, join(root, 'tickets.sqlite'))
   const conv = store.create('agy-429', root, 'gemini-4-argon-high', 'Rate test', 'high', 'agy')
   store.accept(conv, 'test prompt')
   store.finish(conv.id, 1, 'error', '429 rate limit exceeded on RPM bucket', null, { class: 'quota', message: '429 rate limit exceeded on RPM bucket' })
@@ -480,7 +499,7 @@ test('Roster surfaces native+observed quota failures, warns on filtered allowed 
     '-e',
     `
       import { readdirSync, existsSync } from 'node:fs'
-      import { join } from 'node:path'
+      import { delimiter, join } from 'node:path'
       import { DatabaseSync } from 'node:sqlite'
       import { Roster } from './lib/roster.mjs'
       import { home } from './lib/paths.mjs'
@@ -504,7 +523,7 @@ test('Roster surfaces native+observed quota failures, warns on filtered allowed 
     `
   ], {
     cwd: worktreeRoot,
-    env: { ...process.env, BROCO_HOME: join(root, 'broco-home'), PATH: bin + ':' + prevPath },
+    env: prependPath({ ...process.env, BROCO_HOME: join(root, 'broco-home') }, bin),
     encoding: 'utf8'
   }).trim())
   assert.equal(out.status, 'passed')
@@ -520,7 +539,7 @@ test('Projects coalesces SSE events, tracks runningCount + web_port + statusSnap
       `
         import assert from 'node:assert/strict'
         import { mkdirSync } from 'node:fs'
-        import { join } from 'node:path'
+        import { delimiter, join } from 'node:path'
         import { Projects } from './lib/projects.mjs'
         import { Slots } from './lib/slots.mjs'
 
@@ -632,6 +651,6 @@ test('Projects coalesces SSE events, tracks runningCount + web_port + statusSnap
     }).trim())
     assert.equal(out.ok, true)
   } finally {
-    rmSync(root, { recursive: true, force: true })
+    rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 })
   }
 })

@@ -14,7 +14,7 @@
 
 ## Get started
 
-Requires macOS or Linux, Node.js 24+, and two or more coding CLIs you already signed into locally.
+Requires macOS, Linux, or Windows 11, Node.js 24+, Git (Git for Windows on Windows 11), and two or more coding CLIs you already signed into locally.
 
 ```sh
 npm install -g @yanauto/broco
@@ -27,6 +27,8 @@ broco setup
 2. Asks you once to confirm your global allowlist (never enables workers silently).
 3. Prints a live quota-aware roster immediately.
 4. Installs one open `SKILL.md` into `~/.agents/skills/broco/` and links or syncs it into your detected local hosts (**Claude Code**, **Codex**, **Cursor**, **Antigravity**, **OpenCode**, and **Pi** — linking `~/.pi/agent/skills/broco` and respecting `PI_CODING_AGENT_DIR`).
+
+**Native Windows 11 support:** Runs directly in PowerShell, Windows Terminal, or `cmd` (WSL2 also works via the Linux backend) using Windows Named Pipes (`\\.\pipe\broco-*`), direct `.exe` and npm `.cmd` CLI resolution without shell quoting issues, a pinned `~/.agents/skills/broco/broco.cmd` launcher, and NTFS junctions for Pi skills (no administrator privileges required). See [Windows 11 notes & troubleshooting](docs-site/en/installation.md#windows-11-notes).
 
 Then go straight back to your current harness and ask in plain language:
 
@@ -48,7 +50,7 @@ Any host harness can delegate to any allowed worker — including calling `claud
 | `custom:<name>` | Trial-tested new-session and resume command templates | Queues; native step events and cache are unavailable |
 
 - **Official local CLIs using your existing logins.** `broco` spawns the official CLIs you already signed into as isolated local subprocesses, keeping state in `~/.broco/` without touching other CLIs' configs.
-- **Safe prompts and secret redaction.** Prompts stream over `stdin` so task text stays out of `ps` arguments, and secret patterns are redacted before worker streams are stored in SQLite.
+- **Safe prompts and secret redaction.** Prompts stream over `stdin` so task text stays out of process arguments, and secret patterns are redacted before worker streams are stored in SQLite.
 - **Recursion guard (`BROCO_IN_WORKER=1`).** Every worker process inherits `BROCO_IN_WORKER=1`; `broco` refuses nested worker-to-worker dispatch by default unless explicitly overridden with `--allow-nested`.
 
 ## When two harnesses beat one
@@ -88,7 +90,7 @@ broco done auth-fix --result pass --why "Token expiry and refresh tests green."
 broco clean auth-fix --delete-branch
 ```
 
-- **`say`** accepts inline text, `--file <path>`, or `stdin` (`-` or piped input) so multi-line markdown and backticks need no shell escaping. Reuse a name to continue its session; pick a new name to run in parallel. Use `--cwd DIR` to run in another directory while keeping permissions and tickets in the current project, `--attach FILE` for confirmed media, `--new-task` after `done`, and `--from OLD_NAME` to hand off cleanly when `contextWarning` fires at 60% of a model's context window.
+- **`say`** accepts inline text, `--file <path>`, or `stdin` (`-` or piped input; on Windows PowerShell or `cmd`, pass `--file <path>` or pipe `@' ... '@` instead of `<<'EOF'`) so multi-line markdown and backticks need no shell escaping. Reuse a name to continue its session; pick a new name to run in parallel. Use `--cwd DIR` to run in another directory while keeping permissions and tickets in the current project, `--attach FILE` for confirmed media, `--new-task` after `done`, and `--from OLD_NAME` to hand off cleanly when `contextWarning` fires at 60% of a model's context window.
 - **`wait`** is event-driven (0ms wakeup, no SQLite polling) and returns `reply`, `task`, `cwd`, `worktree`, `branch`, and `changedFiles`.
 - **`diff`** inspects tracked and untracked changes against the ticket's base commit.
 - **`review`** defaults to cross-vendor blind review: omitting `--by` automatically selects a permitted worker from a different vendor with available quota headroom (or pass `--by claude`, `--by codex`, etc. explicitly).
@@ -168,7 +170,7 @@ Aggregates real per-task pass/rework/fail/blocked outcomes grouped by worker and
 
 ### Upgrading from `cc-bro` or `opus-manager`
 
-`broco` v1.0.0 is the continuation of `opus-manager` (v0.4) and `cc-bro`. After installing `broco`:
+`broco` is the continuation of `opus-manager` (v0.4) and `cc-bro`. After installing `broco`:
 
 1. Wait for any active work you want to preserve (`cc-bro status` if still installed).
 2. Run `broco shutdown` (cleanly stops legacy runners across older protocols and `~/.cc-bro` sockets) followed by `broco setup --migrate-cc-bro` (or `broco setup` for a fresh start).

@@ -49,6 +49,8 @@ pi auth check --provider openai-codex --no-refresh
 pi --list-models
 ```
 
+在 macOS、Linux 与 Windows 三端，`pi` 工人均使用独立的会话目录（`~/.broco/sessions`）并剥离宿主会话环境变量直接运行（macOS `sandbox-exec` 仅在内部 `.sandbox` 隔离模式下用于保护个人 `~/.pi`）。
+
 ## 按单自由搭配
 
 ```sh

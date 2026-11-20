@@ -176,10 +176,13 @@ test('configuration and credential source errors withhold secret output', async 
   await assert.rejects(credentialValue({}), /exactly one/)
   await assert.rejects(credentialValue({ 'value-env': 'MISSING_TEST_CREDENTIAL' }), /empty/)
   process.env.BROCO_TEST_COMMAND_CREDENTIAL = secret
+  const cmdOk = '"' + process.execPath + '" -e "process.stdout.write(process.env.BROCO_TEST_COMMAND_CREDENTIAL + \'\\n\')"'
+  const cmdFail = '"' + process.execPath + '" -e "process.stderr.write(process.env.BROCO_TEST_COMMAND_CREDENTIAL); process.exit(1)"'
+  const cmdMultiline = '"' + process.execPath + '" -e "process.stdout.write(process.env.BROCO_TEST_COMMAND_CREDENTIAL + \'\\nextra\')"'
   try {
-    assert.equal(await credentialValue({ 'value-command': 'printf "%s\\n" "$BROCO_TEST_COMMAND_CREDENTIAL"' }), secret)
-    await assert.rejects(credentialValue({ 'value-command': 'printf "%s" "$BROCO_TEST_COMMAND_CREDENTIAL" >&2; exit 1' }), error => !error.message.includes(secret) && /withheld/.test(error.message))
-    await assert.rejects(credentialValue({ 'value-command': 'printf "%s\\nextra" "$BROCO_TEST_COMMAND_CREDENTIAL"' }), error => !error.message.includes(secret) && /invalid header/.test(error.message))
+    assert.equal(await credentialValue({ 'value-command': cmdOk }), secret)
+    await assert.rejects(credentialValue({ 'value-command': cmdFail }), error => !error.message.includes(secret) && /withheld/.test(error.message))
+    await assert.rejects(credentialValue({ 'value-command': cmdMultiline }), error => !error.message.includes(secret) && /invalid header/.test(error.message))
   } finally { delete process.env.BROCO_TEST_COMMAND_CREDENTIAL }
 })
 
@@ -204,7 +207,7 @@ test('CLI receipts and runner files/logs exclude credentials; shutdown and crash
       runner.kill('SIGKILL')
       await exited
     }
-    rmSync(base, { recursive: true, force: true })
+    rmSync(base, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 })
   })
   const cli = async (...args) => {
     const result = await exec(process.execPath, [join(repo, 'bin/broco'), ...args], { cwd: base, env: { ...env, BROCO_TEST_CREDENTIAL: secret }, timeout: 10000 })
@@ -220,10 +223,13 @@ test('CLI receipts and runner files/logs exclude credentials; shutdown and crash
   assert.equal((await cli('proxy-list', '--json'))[0].requests, 1)
   assert.equal((await cli('proxy-close', receipt.id, '--json')).status, 'closed')
   await assert.rejects(raw(receipt.url, '/v1/models'))
-  const commandReceipt = await cli(...args, '--value-command', 'printf "%s" "$BROCO_TEST_CREDENTIAL"')
+  const valueCmd = '"' + process.execPath + '" -e "process.stdout.write(process.env.BROCO_TEST_CREDENTIAL)"'
+  const commandReceipt = await cli(...args, '--value-command', valueCmd)
   assert.equal((await raw(commandReceipt.url, '/v1/models')).status, 200)
-  const ps = await exec('/bin/ps', ['-p', String(runner.pid), '-o', 'command='])
-  assert.equal(ps.stdout.includes(secret), false)
+  if (process.platform !== 'win32') {
+    const ps = await exec('/bin/ps', ['-p', String(runner.pid), '-o', 'command='])
+    assert.equal(ps.stdout.includes(secret), false)
+  }
   for (const file of readdirSync(data, { recursive: true, withFileTypes: true })) {
     if (file.isFile()) assert.equal(readFileSync(join(file.parentPath, file.name)).includes(Buffer.from(secret)), false, file.name)
   }

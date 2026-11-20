@@ -2,7 +2,7 @@
 
 `broco` starts with a zero-config global allowlist confirmed during `broco setup` (L0). Add a per-repository policy with `broco init` (L1) only when a specific repo needs stricter boundaries, its own concurrency pool, or heavy manager mode.
 
-## L0: Global policy (zero `init`, zero dotfiles)
+## L0: Global policy (no `init`, clean repo)
 
 During `broco setup`, you confirm the exact global allowlist once (for example `claude,codex,agy,cursor-agent`). Every `pi:<provider>` requires its own explicit ID — allowing `codex` does not grant `pi:openai-codex`.
 

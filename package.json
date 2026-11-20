@@ -1,6 +1,6 @@
 {
   "name": "@yanauto/broco",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Let your AI coding harnesses work together — Claude Code, Codex, Cursor, Antigravity, OpenCode, and Pi.",
   "license": "Apache-2.0",
   "author": "yanauto",
@@ -42,7 +42,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "test": "node --test test/offline.test.mjs test/m1.test.mjs test/m2.test.mjs test/pi-profile.test.mjs test/plugin.test.mjs test/protocol.test.mjs test/upgrade.test.mjs test/roster.test.mjs test/models.test.mjs test/roster-output.test.mjs test/visibility.test.mjs test/tasks.test.mjs test/directories.test.mjs test/credential-proxy.test.mjs test/agy-quota.test.mjs test/adapters.test.mjs test/config-audit.test.mjs test/queue-map.test.mjs test/cli-v040.test.mjs test/r2-engine.test.mjs test/r2-roster-proj.test.mjs test/r2-web.test.mjs test/r2-cli.test.mjs test/claude-worker.test.mjs test/l0-setup.test.mjs",
+    "test": "node --test test/offline.test.mjs test/m1.test.mjs test/m2.test.mjs test/pi-profile.test.mjs test/plugin.test.mjs test/protocol.test.mjs test/upgrade.test.mjs test/roster.test.mjs test/models.test.mjs test/roster-output.test.mjs test/visibility.test.mjs test/tasks.test.mjs test/directories.test.mjs test/credential-proxy.test.mjs test/agy-quota.test.mjs test/adapters.test.mjs test/config-audit.test.mjs test/queue-map.test.mjs test/cli-v040.test.mjs test/r2-engine.test.mjs test/r2-roster-proj.test.mjs test/r2-web.test.mjs test/r2-cli.test.mjs test/claude-worker.test.mjs test/l0-setup.test.mjs test/windows-compat.test.mjs",
     "test:plugin": "node --test test/plugin.test.mjs",
     "sync:models": "node scripts/sync-model-catalog.mjs",
     "prepack": "node scripts/package-board.mjs",

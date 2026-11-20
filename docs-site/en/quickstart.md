@@ -20,7 +20,7 @@ broco roster
 broco say test-map "Locate the tests and tell me how to run one. Do not edit files." --bg --json
 ```
 
-`--bg` returns a receipt immediately with `name` and `turn`. A new name (`test-map`) starts a fresh persistent session; reusing the same name continues that native session. For multi-line prompts containing markdown, backticks, or `$VAR`, pass `--file prompt.md` or pipe via `stdin` (`-`):
+`--bg` returns a receipt immediately with `name` and `turn`. A new name (`test-map`) starts a fresh persistent session; reusing the same name continues that native session. For multi-line prompts containing markdown, backticks, or `$VAR`, pass `--file prompt.md` or pipe via `stdin` (`-`; on Windows PowerShell or `cmd`, use `--file prompt.md` or pipe `@' ... '@` instead of `<<'EOF'`):
 
 ```sh
 broco say auth-fix - --worker agy --worktree --bg --json <<'EOF'
@@ -38,7 +38,7 @@ broco done auth-fix --result pass --why "Expiry and refresh tests pass."
 broco clean auth-fix --delete-branch
 ```
 
-- `wait` wakes immediately on turn completion (event-driven, zero SQLite polling) and returns `reply`, `task`, `cwd`, `worktree`, `branch`, and `changedFiles`.
+- `wait` wakes immediately on turn completion (event-driven, no SQLite polling) and returns `reply`, `task`, `cwd`, `worktree`, `branch`, and `changedFiles`.
 - `review` omits `--by` to automatically pick an allowed worker from a different vendor with available quota headroom (or specify `--by claude`, `--by codex`, etc.).
 - `clean` safely removes retained worktrees after you merge or preserve changes (`--dry-run` previews first).
 

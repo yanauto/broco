@@ -14,7 +14,7 @@ import { legacySocketsFor } from '../lib/client.mjs'
 import { repo, socketFor } from '../lib/paths.mjs'
 import { FIRST_RUN_PROMPT, formatQuotaBar, readGlobalPolicy, setupInfo } from '../lib/setup.mjs'
 import { HOST_SESSION_VARS } from '../lib/templates.mjs'
-import { harness } from './harness.mjs'
+import { harness, prependPath, writeFakeCli } from './harness.mjs'
 
 const exec = promisify(execFile)
 const bin = join(repo, 'bin', 'broco')
@@ -327,7 +327,7 @@ test('setup syncs skills only to existing host dirs, renders quota bars, never s
 
   const nonInteractive = JSON.parse((await exec(process.execPath, [bin, 'setup', '--json'], { env: setupEnv, cwd: h.cwd })).stdout.trim())
   assert.equal(existsSync(join(fakeHome, '.agents', 'skills', 'broco', 'SKILL.md')), true)
-  assert.equal(existsSync(join(fakeHome, '.agents', 'skills', 'broco', 'broco')), true)
+  assert.equal(existsSync(join(fakeHome, '.agents', 'skills', 'broco', process.platform === 'win32' ? 'broco.cmd' : 'broco')), true)
   assert.equal(existsSync(join(fakeHome, '.claude', 'skills', 'broco', 'SKILL.md')), true)
   assert.equal(existsSync(join(fakeHome, '.codex', 'skills', 'broco', 'SKILL.md')), true)
   assert.equal(existsSync(join(fakeHome, '.gemini', 'config', 'skills', 'broco', 'SKILL.md')), true)
@@ -368,7 +368,7 @@ test('setup syncs skills only to existing host dirs, renders quota bars, never s
   assert.equal(withYes.allowlist.confirmedBy, 'yes')
   assert.ok(withYes.allowlist.allow.includes('codex'))
   assert.equal(existsSync(join(customSkillsHome, 'broco', 'SKILL.md')), true)
-  assert.equal(existsSync(join(customSkillsHome, 'broco', 'broco')), true)
+  assert.equal(existsSync(join(customSkillsHome, 'broco', process.platform === 'win32' ? 'broco.cmd' : 'broco')), true)
   assert.match(readFileSync(join(customSkillsHome, 'broco', 'SKILL.md'), 'utf8'), /On-Demand Crew/)
   assert.match(readFileSync(join(customSkillsHome, 'broco', 'SKILL.md'), 'utf8'), /BROCO_IN_WORKER=1/)
 })
@@ -403,7 +403,7 @@ test('setup detects legacy ~/.cc-bro, guards active legacy runner, and --migrate
   assert.match(previewText, /broco setup --migrate-cc-bro/)
 
   const legacySock = socketFor(legacyDir)
-  rmSync(legacySock, { force: true })
+  if (process.platform !== 'win32') rmSync(legacySock, { force: true })
   const fakeLegacyRunner = createServer((req, res) => {
     res.setHeader('Content-Type', 'application/json')
     res.end(JSON.stringify({ pid: process.pid, protocol: 15 }))
@@ -412,7 +412,7 @@ test('setup detects legacy ~/.cc-bro, guards active legacy runner, and --migrate
   await once(fakeLegacyRunner, 'listening')
   t.after(() => {
     fakeLegacyRunner.close()
-    rmSync(legacySock, { force: true })
+    if (process.platform !== 'win32') rmSync(legacySock, { force: true })
   })
 
   await assert.rejects(
@@ -425,7 +425,7 @@ test('setup detects legacy ~/.cc-bro, guards active legacy runner, and --migrate
   assert.equal(existsSync(join(h.data, 'registry-v2.sqlite')), false)
 
   await new Promise(ok => fakeLegacyRunner.close(ok))
-  rmSync(legacySock, { force: true })
+  if (process.platform !== 'win32') rmSync(legacySock, { force: true })
 
   const migrated = JSON.parse((await exec(process.execPath, [bin, 'setup', '--migrate-cc-bro', '--json'], { env: migEnv, cwd: h.cwd })).stdout.trim())
   assert.equal(migrated.migration.migrated, true)
@@ -444,7 +444,7 @@ test('setup detects legacy ~/.cc-bro, guards active legacy runner, and --migrate
   )
 })
 
-test('broco shutdown stops legacy ~/.cc-bro hash socket and unblocks --migrate-cc-bro', async t => {
+test('broco shutdown stops legacy ~/.cc-bro hash socket and unblocks --migrate-cc-bro', { skip: process.platform === 'win32' }, async t => {
   if (process.platform === 'win32') return
   const h = harness(t)
   const legacyDir = join(h.base, 'legacy-shutdown-src')
@@ -504,30 +504,26 @@ test('claude signed-out or unknown login is never silently allowed in setup --ye
   const h = harness(t)
   const fakeBin = join(h.base, 'claude-bin')
   mkdirSync(fakeBin, { recursive: true })
-  const fakeClaude = join(fakeBin, 'claude')
-  writeFileSync(
-    fakeClaude,
-    '#!/usr/bin/env node\n' +
-    'const args = process.argv.slice(2);\n' +
-    'if (args.includes("--version")) { console.log("2.1.325 (Claude Code)"); process.exit(0); }\n' +
-    'if (args[0] === "auth") {\n' +
-    '  if (process.env.FAKE_CLAUDE_MODE === "unknown") { console.error("unexpected error"); process.exit(1); }\n' +
-    '  console.log(JSON.stringify({ loggedIn: false })); process.exit(1);\n' +
-    '}\n' +
-    'process.exit(1);\n',
-    { mode: 0o755 }
-  )
+  writeFakeCli(fakeBin, 'claude', [
+    'const args = process.argv.slice(2);',
+    'if (args.includes("--version")) { console.log("2.1.325 (Claude Code)"); process.exit(0); }',
+    'if (args[0] === "auth") {',
+    '  if (process.env.FAKE_CLAUDE_MODE === "unknown") { console.error("unexpected error"); process.exit(1); }',
+    '  console.log(JSON.stringify({ loggedIn: false })); process.exit(1);',
+    '}',
+    'process.exit(1);'
+  ])
 
   for (const mode of ['signed-out', 'unknown']) {
     const hCase = harness(t)
-    const caseEnv = { ...hCase.env, PATH: fakeBin + ':' + hCase.env.PATH, FAKE_CLAUDE_MODE: mode }
+    const caseEnv = prependPath({ ...hCase.env, FAKE_CLAUDE_MODE: mode }, fakeBin)
     const setupRes = JSON.parse((await exec(process.execPath, [bin, 'setup', '--yes', '--json'], { env: caseEnv, cwd: hCase.cwd })).stdout.trim())
     const claudeDetected = setupRes.detected.find(w => w.id === 'claude')
     assert.equal(claudeDetected.loggedIn, false)
     assert.equal(setupRes.allowlist.allow.includes('claude'), false)
 
     const hGlobal = harness(t)
-    const globalEnv = { ...hGlobal.env, PATH: fakeBin + ':' + hGlobal.env.PATH, FAKE_CLAUDE_MODE: mode }
+    const globalEnv = prependPath({ ...hGlobal.env, FAKE_CLAUDE_MODE: mode }, fakeBin)
     const rosterRes = JSON.parse((await exec(process.execPath, [bin, 'roster', '--global', '--refresh', '--json'], { env: globalEnv, cwd: hGlobal.cwd })).stdout.trim())
     assert.equal(rosterRes.globalAllowConfigured, false)
     const claudeRow = rosterRes.workers.find(w => w.id === 'claude')
@@ -608,7 +604,7 @@ test('pi host setup uses deduplicated symlink, respects PI_CODING_AGENT_DIR, rep
   assert.equal(lstatSync(overlapDir).isDirectory(), true)
   assert.equal(lstatSync(overlapDir).isSymbolicLink(), false)
   assert.equal(existsSync(join(overlapDir, 'SKILL.md')), true)
-  assert.equal(existsSync(join(overlapDir, 'broco')), true)
+  assert.equal(existsSync(overlapFirst.launcher), true)
 
   const overlapSecond = setupInfo({ homeDir: homeOverlap, skillsHome: overlapSkills, env: envDefault })
   assert.deepEqual(overlapSecond.hosts, overlapFirst.hosts)

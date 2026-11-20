@@ -3,7 +3,7 @@ name: broco
 description: On-demand crew skill for any coding agent host (Claude Code, Codex, Cursor, Antigravity, OpenCode, Pi). Summon other logged-in AI CLIs via broco when your own quota is tight, you want an independent cross-vendor worktree review, you need a modality you lack (image/audio/video/PDF), or you need sharded map batch jobs. Works zero-init (L0) in any directory once global workers are allowed.
 ---
 
-Use the installed launcher {{launcher}} for every command. This skill works across any Agent Skills host (Claude Code, Codex, Cursor, Antigravity, OpenCode, Pi).
+Use the installed launcher {{launcher}} for every command (on Windows PowerShell, prefix a quoted path with `& `, e.g. `& {{launcher}} roster --json`). This skill works across any Agent Skills host (Claude Code, Codex, Cursor, Antigravity, OpenCode, Pi).
 
 ## When to summon broco (On-Demand Crew)
 

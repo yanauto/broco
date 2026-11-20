@@ -4,7 +4,7 @@ Quick answers to common setup, architecture, and runtime questions.
 
 ## Do I need to run `broco init` in every repository?
 
-No. After `broco setup`, L0 mode works in every directory immediately using your global allowlist — with zero hidden dotfiles added to your repository and no changes to `CLAUDE.md` or `AGENTS.md`. Only run `broco init` (L1) when a specific repo needs a stricter allowlist, its own concurrency limit, repo-specific rules, or `--manager-mode`. See [Global and repo policy](allowlist.md).
+No. After `broco setup`, L0 mode works in every directory immediately using your global allowlist — adding no hidden dotfiles to your repository and making no changes to `CLAUDE.md` or `AGENTS.md`. Only run `broco init` (L1) when a specific repo needs a stricter allowlist, its own concurrency limit, repo-specific rules, or `--manager-mode`. See [Global and repo policy](allowlist.md).
 
 ## How does broco authenticate with each CLI?
 
@@ -36,4 +36,4 @@ A `--worktree` starts from committed `HEAD`. Check the writer’s branch with `b
 
 ## What platforms and setups does broco support?
 
-`broco` runs on macOS and Linux with Node.js 24+ and works best when you have two or more signed-in coding harnesses on the same machine (Claude Code, Codex, Cursor, Antigravity, OpenCode, or Pi). For quick single-file edits inside the same model family, your current host’s built-in subagent is usually fastest.
+`broco` runs natively on macOS, Linux, and Windows 11 (PowerShell, Windows Terminal, and `cmd`, plus WSL2 via the Linux backend) with Node.js 24+ and Git, and works best when you have two or more signed-in coding harnesses on the same machine (Claude Code, Codex, Cursor, Antigravity, OpenCode, or Pi). On native Windows, the runner uses Named Pipes (`\\.\pipe\broco-*`), resolves `.exe` and npm `.cmd` CLIs directly, writes a `broco.cmd` skill launcher, and links Pi skills via admin-free NTFS junctions. For quick single-file edits inside the same model family, your current host’s built-in subagent is usually fastest.

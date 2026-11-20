@@ -14,7 +14,7 @@
 
 ## 快速上手
 
-需要 macOS 或 Linux、Node.js 24+，以及至少两个你已在本机登录好的编程 CLI。
+需要 macOS、Linux 或 Windows 11、Node.js 24+、Git（Windows 11 需安装 Git for Windows），以及至少两个你已在本机登录好的编程 CLI。
 
 ```sh
 npm install -g @yanauto/broco
@@ -27,6 +27,8 @@ broco setup
 2. 一步请你确认全局放行名单（绝不静默全放行）。
 3. 当场打印带实时额度状态的花名册。
 4. 将一份开放 `SKILL.md` 装入 `~/.agents/skills/broco/`，并自动同步挂载到已探测到的宿主 harness（**Claude Code**、**Codex**、**Cursor**、**Antigravity**、**OpenCode**、**Pi**——同时为 Pi 链接 `~/.pi/agent/skills/broco` 并支持 `PI_CODING_AGENT_DIR`）。
+
+**原生支持 Windows 11**：直接在 PowerShell、Windows Terminal 或 `cmd` 中运行（WSL2 也可通过 Linux 后端独立使用），通过 Windows 命名管道（`\\.\pipe\broco-*`）通信，直接解析 `.exe` 与 npm `.cmd` CLI 且免除 shell 引号转义问题，生成固定的 `~/.agents/skills/broco/broco.cmd` 启动器，并通过 NTFS 目录联接挂载 Pi 技能（无需管理员权限）。详见 [Windows 11 环境与排障说明](docs-site/zh/installation.md#windows-11-说明)。
 
 装完直接回到你当前的 harness，像平时一样说自然语言：
 
@@ -48,7 +50,7 @@ broco setup
 | `custom:<名称>` | 两轮试跑通过的新会话／续聊命令模板 | 排队；无原生步骤和缓存读数 |
 
 - **直连本机官方 CLI，复用现有登录态。** `broco` 以隔离本地子进程直接运行你已登录的官方 CLI，运行状态统一保存在 `~/.broco/`，不改动其他 CLI 的配置文件。
-- **安全传题与落库脱敏。** 提示词经 `stdin` 传递，不会暴露在系统 `ps` 进程参数里；写入 SQLite 前对凭据模式自动脱敏。
+- **安全传题与落库脱敏。** 提示词经 `stdin` 传递，不会暴露在系统进程命令行参数里；写入 SQLite 前对凭据模式自动脱敏。
 - **防递归保护（`BROCO_IN_WORKER=1`）。** runner 启动每个子进程时注入 `BROCO_IN_WORKER=1`，确保协作者专注完成当前任务，默认拒绝嵌套派单（除非显式传入 `--allow-nested`）。
 
 ## 什么时候让它们一起干活
@@ -88,8 +90,8 @@ broco done auth-fix --result pass --why "Token 过期与刷新测试通过。"
 broco clean auth-fix --delete-branch
 ```
 
-- **`say`** 支持行内文本、`--file <路径>` 或 `stdin`（`-`／管道／heredoc），含多行代码块、反引号和 `$` 变量时无需转义。同名续聊、异名并行；可用 `--cwd 目录` 跨目录施工，`--attach 文件` 传确认支持的附件，`--new-task` 开启新任务；当上下文触及 60% 阈值出现 `contextWarning` 时，空闲后用 `--from 旧名字` 无损交接。
-- **`wait`** 为事件驱动即刻唤醒（0ms，零 SQLite 轮询），直接返回 `reply`、`task`、`cwd`、`worktree`、`branch` 和 `changedFiles`。
+- **`say`** 支持行内文本、`--file <路径>` 或 `stdin`（`-`／管道／heredoc；Windows PowerShell 或 `cmd` 下请改用 `--file <路径>` 或 `@' ... '@` 管道替代 `<<'EOF'`），含多行代码块、反引号和 `$` 变量时无需转义。同名续聊、异名并行；可用 `--cwd 目录` 跨目录施工，`--attach 文件` 传确认支持的附件，`--new-task` 开启新任务；当上下文触及 60% 阈值出现 `contextWarning` 时，空闲后用 `--from 旧名字` 无损交接。
+- **`wait`** 为事件驱动即刻唤醒（0ms，无 SQLite 轮询），直接返回 `reply`、`task`、`cwd`、`worktree`、`branch` 和 `changedFiles`。
 - **`diff`** 相对基线提交查看跟踪与未跟踪的全部改动。
 - **`review`** 默认跨模型盲审：省略 `--by` 时，自动从允许名单中挑选与原单不同厂商且额度宽裕的工人（也可显式指定 `--by claude`、`--by codex` 等）。
 - **`done` 与 `clean`** 登记单次结果（`pass`／`rework`／`fail`／`blocked`），合并后安全清理残留 worktree 与分支（可先 `--dry-run` 预览）。
@@ -168,7 +170,7 @@ broco stats --project . --json
 
 ### 从 `cc-bro` 或 `opus-manager` 平滑升级
 
-`broco` v1.0.0 由 `opus-manager`（v0.4）与 `cc-bro` 演进而来。安装 `broco` 后：
+`broco` 由 `opus-manager`（v0.4）与 `cc-bro` 演进而来。安装 `broco` 后：
 
 1. 先确认是否有需要跑完的旧任务（可运行旧版 `cc-bro status` 查看）。
 2. 执行 `broco shutdown`（平滑停止旧协议后台及 `~/.cc-bro` 套接字）和 `broco setup --migrate-cc-bro`（或直接 `broco setup` 全新开始）。

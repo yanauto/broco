@@ -36,4 +36,4 @@
 
 ## 支持哪些平台与使用环境？
 
-`broco` 支持 macOS 与 Linux（Node.js 24+），适合在同一台电脑上装有两个及以上已登录编程 harness（Claude Code、Codex、Cursor、Antigravity、OpenCode、Pi）的开发工作流。同模型族内的几行快速小改，直接用当前宿主自带的 subagent 通常最轻快。
+`broco` 原生支持 macOS、Linux 与 Windows 11（PowerShell、Windows Terminal 与 `cmd`，WSL2 可通过 Linux 后端运行），需要 Node.js 24+ 与 Git，适合在同一台电脑上装有两个及以上已登录编程 harness（Claude Code、Codex、Cursor、Antigravity、OpenCode、Pi）的开发工作流。原生 Windows 下通过命名管道（`\\.\pipe\broco-*`）通信、直接解析 `.exe` 与 npm `.cmd` CLI、生成 `broco.cmd` 技能启动器并通过免管理员权限的 NTFS 目录联接挂载 Pi 技能。同模型族内的几行快速小改，直接用当前宿主自带的 subagent 通常最轻快。

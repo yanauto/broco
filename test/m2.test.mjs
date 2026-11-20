@@ -129,12 +129,13 @@ test('git change summary includes staged-only edits, committed changes and untra
   git('add','base')
   writeFileSync(join(h.cwd,'base'), 'initial\n')
   assert.deepEqual(changes(h.cwd,b), [{path:'base',status:'M'}])
-  writeFileSync(join(h.cwd,'two\nlines'),'payload')
-  git('add','two\nlines')
+  const specialName = process.platform === 'win32' ? 'two words [1].txt' : 'two\nlines'
+  writeFileSync(join(h.cwd, specialName), 'payload')
+  git('add', specialName)
   git('-c','user.name=Fixture','-c','user.email=fixture@localhost','commit','-qm','Rename-safe fixture')
   rmSync(join(h.cwd,'base'))
   writeFileSync(join(h.cwd,'new file'),'new')
-  assert.deepEqual(changes(h.cwd,b), [{path:'base',status:'D'},{path:'new file',status:'A'},{path:'two\nlines',status:'A'}])
+  assert.deepEqual(changes(h.cwd,b), [{path:'base',status:'D'},{path:'new file',status:'A'},{path:specialName,status:'A'}])
 })
 
 test('Codex RPC refusal resumes exactly once; an unknown acknowledgement is never replayed', async t => {

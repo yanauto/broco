@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.1.0
+
+### English
+
+Released 2026-11-20 — Native Windows 11 support alongside macOS and Linux in one `@yanauto/broco` package.
+
+- **Windows Platform Adapter & Named Pipes IPC**:
+  - Added native Windows 11 runner lifecycle, process tree reaping, browser/terminal helpers, and Windows Named Pipe (`\\.\pipe\broco-*`) transport across PowerShell, Windows Terminal, and `cmd` (with WSL2 supported via the Linux backend).
+  - Kept macOS Seatbelt (`sandbox-exec`) protection for `~/.pi` scoped to macOS isolated `.sandbox` runs; across macOS, Linux, and Windows, normal `pi` workers run directly with isolated session and profile environment variables.
+- **Cross-Platform CLI & Shim Resolver**:
+  - Resolves `.exe` executables and npm `.cmd`/`.bat` Node shims directly without shell quoting issues, prioritizing `PATHEXT` entries over extensionless POSIX shims and falling back cleanly via `ComSpec` for non-Node `.cmd`/`.bat` wrappers (including `.cmd` launchers for PowerShell scripts).
+- **Windows Launcher & Admin-Free Pi Skill Linking**:
+  - `broco setup` writes a `broco.cmd` launcher, supports Windows `PATH` sanitization (`;` delimiter and drive letters), and links Pi skills (`~/.pi/agent/skills/broco`) via NTFS directory junctions without administrator privileges (falling back to copying `SKILL.md` when restricted).
+- **Windows CI Coverage**:
+  - Expanded GitHub Actions CI to run the test suite on both `ubuntu-latest` and `windows-latest` with Node.js 24.
+
+### 简体中文
+
+2026-11-20 发布 —— 在同一个 `@yanauto/broco` 包内提供原生 Windows 11 支持，完整覆盖 macOS、Linux 与 Windows 三平台。
+
+- **Windows 平台适配器与命名管道通信**：
+  - 新增原生 Windows 11 后台生命周期、进程树清理、浏览器／终端拉起与 Windows 命名管道（`\\.\pipe\broco-*`）传输，原生支持 PowerShell、Windows Terminal 与 `cmd`（WSL2 继续通过 Linux 后端运行）。
+  - macOS Seatbelt（`sandbox-exec`）仅用于 macOS 下的 `.sandbox` 隔离运行以保护个人 `~/.pi`；在 macOS、Linux 与 Windows 三端，常规 `pi` 工人均通过隔离的会话目录与环境变量直接运行。
+- **跨平台 CLI 与垫片解析器**：
+  - 按 `PATHEXT` 优先直接解析 `.exe` 可执行文件与 npm `.cmd`/`.bat` Node 垫片，避开无后缀 POSIX 脚本并消除 shell 引号转义问题；遇到非 Node 的自定义 `.cmd`/`.bat` 包装脚本（含调用 PowerShell 脚本的 `.cmd` 启动器）时经 `ComSpec` 安全回退。
+- **Windows 启动器与免管理员权限 Pi 技能挂载**：
+  - `broco setup` 在 Windows 下生成 `broco.cmd` 启动器、支持分号分隔与盘符路径的 `PATH` 净化，并通过 NTFS 目录联接（junction）挂载 Pi 技能目录（`~/.pi/agent/skills/broco`），无需管理员权限（受限环境自动回退为复制 `SKILL.md`）。
+- **Windows CI 矩阵**：
+  - GitHub Actions CI 升级为在 `ubuntu-latest` 与 `windows-latest`（Node.js 24）双平台同步运行全量测试。
+
 ## 1.0.0
 
 ### English

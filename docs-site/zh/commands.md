@@ -6,7 +6,7 @@
 
 | 命令 | 行为 |
 | --- | --- |
-| `broco setup [--allow 名单] [--default-worker ID] [--yes] [--migrate-cc-bro] [--json]` | 探测本机 CLI、一步确认全局允许名单、打印实时额度花名册、支持 `--migrate-cc-bro` 无损迁移旧 `~/.cc-bro/`，并将 `~/.agents/skills/broco/SKILL.md` 同步装入检测到的宿主 harness（含为 Pi 链接 `~/.pi/agent/skills/broco` 并支持 `PI_CODING_AGENT_DIR`）。 |
+| `broco setup [--allow 名单] [--default-worker ID] [--yes] [--migrate-cc-bro] [--json]` | 探测本机 CLI、一步确认全局允许名单、打印实时额度花名册、支持 `--migrate-cc-bro` 无损迁移旧 `~/.cc-bro/`、写入启动器（Windows 下为 `broco.cmd`），并将 `~/.agents/skills/broco/SKILL.md` 同步装入检测到的宿主 harness（为 Pi 挂载 `~/.pi/agent/skills/broco`：POSIX 使用符号链接、Windows 使用 NTFS 目录联接，并支持 `PI_CODING_AGENT_DIR`）。 |
 | `broco status [--project 路径] [--all] [--json]` | 在不拉起未启动后台、不建隐式项目的前提下检查 runner 健康度、看板地址、凭据代理、在跑／排队单、批次与可清理 worktree。 |
 | `broco init [--project 目录] [--allow 名单] [--default-worker ID] [--concurrency N] [--host auto\|agents\|claude\|codex\|cursor\|agy\|opencode\|pi] [--manager-mode] [--no-agents-md] [--json]` | 可选 L1 项目策略：写入 `.broco/`，优先维护 `AGENTS.md` 标记段（无 `AGENTS.md` 且已有 `CLAUDE.md`，或显式传入 `--host claude` 时改为维护 `CLAUDE.md`）。 |
 | `broco uninit [--project 目录] [--host auto\|agents\|claude\|codex\|cursor\|agy\|opencode\|pi] [--no-agents-md] [--json]` | 释放空闲工人、注销项目、移除 `.broco/`（及残留 `.cc-bro/project-id`）并干净剥离标记段。 |

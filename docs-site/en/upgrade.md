@@ -1,6 +1,19 @@
 # Upgrading and migrating
 
-`broco` v1.0.0 is the direct evolution of `opus-manager` (v0.4) and `cc-bro` (0.4.x). Upgrading preserves your projects, policies, named sessions, and ticket history.
+`broco` is the direct evolution of `opus-manager` (v0.4) and `cc-bro` (0.4.x). Upgrading preserves your projects, policies, named sessions, and ticket history.
+
+## Upgrading from 1.0.x
+
+1. Let any active turns you want to preserve finish (`broco status`).
+2. Update the package, restart the runner, and refresh the installed launcher and host skills:
+
+```sh
+npm install -g @yanauto/broco@latest
+broco shutdown
+broco setup
+```
+
+Existing `~/.broco/` settings, allowlists, sessions, and ticket history remain untouched.
 
 ## Upgrading from `cc-bro` (0.4.x) or `opus-manager`
 

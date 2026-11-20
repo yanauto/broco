@@ -1,6 +1,19 @@
 # 升级与迁移
 
-`broco` v1.0.0 由 `opus-manager`（v0.4）与 `cc-bro`（0.4.x）平滑演进而来，完整保留已有项目策略、具名会话与工单历史。
+`broco` 由 `opus-manager`（v0.4）与 `cc-bro`（0.4.x）平滑演进而来，完整保留已有项目策略、具名会话与工单历史。
+
+## 从 1.0.x 升级
+
+1. 如有需要保留的在跑任务，先用 `broco status` 确认并等待其完成。
+2. 升级包版本、重启后台服务并刷新启动器与各宿主技能文件：
+
+```sh
+npm install -g @yanauto/broco@latest
+broco shutdown
+broco setup
+```
+
+原有的 `~/.broco/` 配置、允许名单、会话与工单历史保持原样。
 
 ## 从 `cc-bro`（0.4.x）或 `opus-manager` 升级
 
@@ -20,7 +33,7 @@ broco setup --migrate-cc-bro
 ### 1.0.0 关键变化
 
 - **命名与路径统一**：CLI 命令为 `broco`，数据目录 `~/.broco/`（`$BROCO_HOME`），可选项目标记 `.broco/`，环境变量统一 `BROCO_*`（含时区覆盖 `BROCO_TZ` 与防递归锁 `BROCO_IN_WORKER=1`）。
-- **L0 免 `init`**：不再需要在每个仓库执行 `init`；全局策略在任意目录直接生效，零仓库 dotfiles。已有项目配置继续严格覆盖全局默认。
+- **L0 免 `init`**：不再需要在每个仓库执行 `init`；全局策略在任意目录直接生效，不在仓库生成隐藏文件。已有项目配置继续严格覆盖全局默认。
 - **新增内置 `claude` 工人**：原生 `claude` 与 `codex`、`agy`、`cursor-agent`、`pi:<厂商>`、`custom:<名称>` 全对称互通；在 `broco setup` 中由你决定是否放行。
 - **默认跨模型盲审**：`broco review <名字>` 省略 `--by` 时自动挑选与原单不同厂商且额度宽裕的工人。
 - **动态本机时区**：时间按 `BROCO_TZ` → `TZ` → 系统时区解析，不再硬编码 `Asia/Shanghai`。

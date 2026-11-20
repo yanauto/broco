@@ -8,7 +8,7 @@ import test from 'node:test'
 import { START_MARKER, END_MARKER, claudeMdBlock, ensureClaudeMd, removeClaudeMd } from '../lib/claude-md.mjs'
 import { formatDateTime, formatShortTime, resolvedTimeZone } from '../lib/time.mjs'
 import { legacyCcBroHome, repo } from '../lib/paths.mjs'
-import { harness } from './harness.mjs'
+import { harness, prependPath, writeFakeCli } from './harness.mjs'
 
 test('AGENTS.md / CLAUDE.md init helper creates, appends without touching existing text, updates, and removes cleanly', () => {
   const dir = mkdtempSync(join(tmpdir(), 'broco-claude-md-'))
@@ -69,9 +69,7 @@ test('fast Roster.list skips detectCli subprocesses for disallowed workers and w
   mkdirSync(fakeBin, { recursive: true })
   mkdirSync(canaryDir, { recursive: true })
   for (const name of ['claude', 'agy', 'cursor-agent']) {
-    const script = join(fakeBin, name)
-    writeFileSync(script, '#!/usr/bin/env node\nimport { writeFileSync } from "node:fs"\nwriteFileSync(' + JSON.stringify(join(canaryDir, name)) + ', "spawned")\nprocess.exit(1)\n')
-    chmodSync(script, 0o755)
+    writeFakeCli(fakeBin, name, 'import { writeFileSync } from "node:fs"\nwriteFileSync(' + JSON.stringify(join(canaryDir, name)) + ', "spawned")\nprocess.exit(1)\n')
   }
   writeFileSync(join(h.cwd, 'fixture-models.json'), JSON.stringify([
     { model: 'gpt-6-astra', inputModalities: ['text', 'image'] }
@@ -119,7 +117,7 @@ test('fast Roster.list skips detectCli subprocesses for disallowed workers and w
   `
   execFileSync(process.execPath, ['--input-type=module', '-e', script, h.cwd, canaryDir], {
     cwd: repo,
-    env: { ...h.env, PATH: fakeBin + ':' + h.env.PATH },
+    env: prependPath({ ...h.env }, fakeBin),
     timeout: 20000
   })
 })

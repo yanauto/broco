@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process'
 import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname, join, sep } from 'node:path'
 
 const args = process.argv.slice(2)
 const option = name => args[args.indexOf(name) + 1]
@@ -40,9 +40,11 @@ if (args.includes('--version')) {
   const model = args.includes('--models') ? 'fixture-default' : option('--model')
   const id = option('--session-id')
   const sessions = option('--session-dir')
-  const data = dirname(process.env.HOME)
-  if (process.env.BROCO_API_KEY !== fakeKey || !sessions.startsWith(data + '/') ||
-      !process.env.PI_CODING_AGENT_DIR.startsWith(data + '/') || !args.includes('--no-extensions')) process.exit(2)
+  const data = dirname(process.env.HOME || process.env.USERPROFILE)
+  const norm = p => process.platform === 'win32' ? String(p ?? '').toLowerCase() : String(p ?? '')
+  const dataPrefix = norm(data) + sep
+  if (process.env.BROCO_API_KEY !== fakeKey || !norm(sessions).startsWith(dataPrefix) ||
+      !norm(process.env.PI_CODING_AGENT_DIR).startsWith(dataPrefix) || !args.includes('--no-extensions')) process.exit(2)
   const file = join(sessions, id + '.txt')
   let timer
   let steered = ''
@@ -79,6 +81,12 @@ if (args.includes('--version')) {
     if (current.startsWith('remember ')) writeFileSync(file, current.slice(9))
     if (current === 'recall') return finish(readFileSync(file, 'utf8'))
     if (current === 'orphan') {
+      if (process.platform === 'win32') {
+        const bg = spawn(process.execPath, ['-e', 'setTimeout(() => {}, 60000)'], { detached: true, stdio: 'ignore', windowsHide: true })
+        writeFileSync('orphan.pid', String(bg.pid))
+        bg.unref()
+        return finish('orphan started')
+      }
       const shell = spawn('/bin/bash', ['-c', 'exec 19<"$BROCO_MARKER"; sleep 60 </dev/null >/dev/null 2>&1 & echo $! > orphan.pid'], { detached: true, stdio: 'ignore' })
       shell.once('exit', () => finish('orphan started'))
       return
