@@ -12,6 +12,14 @@
 
 **Let your harnesses work together.** Stay in whichever coding agent you already have open, and delegate to the rest on your machine — Claude Code, Codex, Cursor, Pi, OpenCode, and [Antigravity](https://broco.yanauto.me/docs/workers/#agy) (API/Enterprise). Run parallel git worktrees, ask another model family for a cold diff review, and route around 5-hour quota limits using your existing logins.
 
+<p align="center">
+  <a href="https://broco.yanauto.me/#watch">
+    <img src="https://broco.yanauto.me/assets/media/broco-demo-preview-en.gif" alt="broco 32-second demo: never let an AI grade its own homework — cross-vendor blind review and quota-aware routing" width="760">
+  </a>
+  <br>
+  <sub>32-second demo · <a href="https://broco.yanauto.me/#watch">Watch in 1080p with audio on broco.yanauto.me →</a></sub>
+</p>
+
 ## Get started
 
 Requires macOS, Linux, or Windows 11, Git (Git for Windows on Windows 11), and two or more coding CLIs you already signed into locally. The one-line installer brings its own Node runtime when needed; installing via `npm` requires Node.js 22.13+.

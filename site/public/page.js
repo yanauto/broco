@@ -130,9 +130,29 @@ const setupModes = {
   }
 }
 
+const filmTracks = {
+  en: {
+    src: 'assets/media/broco-demo-en.mp4',
+    poster: 'assets/media/broco-demo-en-poster.jpg',
+    meta: 'broco-demo-en.mp4 · 1080p · 32s',
+    play: { en: 'Play 32s demo', zh: '播放 32 秒英文演示' }
+  },
+  zh: {
+    src: 'assets/media/broco-demo-zh.mp4',
+    poster: 'assets/media/broco-demo-zh-poster.jpg',
+    meta: 'broco-demo-zh.mp4 · 1080p · 33s · 中文口播',
+    play: { en: 'Play 33s Chinese VO demo', zh: '播放 33 秒中文口播演示' }
+  }
+}
+
 const byId = id => document.getElementById(id)
 const themeBtn = byId('theme-toggle')
 const languageBtn = byId('language')
+const demoVideo = byId('demo-video')
+const filmPlayOverlay = byId('film-play-overlay')
+const filmPlayLabel = byId('film-play-label')
+const filmMeta = byId('film-meta')
+const filmTabs = Array.from(document.querySelectorAll('[data-film]'))
 const osTabs = Array.from(document.querySelectorAll('[data-os]'))
 const sceneTabs = Array.from(document.querySelectorAll('[data-scene]'))
 const hoodTabs = Array.from(document.querySelectorAll('[data-hood]'))
@@ -141,6 +161,7 @@ const translations = Array.from(document.querySelectorAll('[data-zh]'), el => [e
 const ariaLabels = Array.from(document.querySelectorAll('[data-zh-aria]'), el => [el, el.getAttribute('aria-label')])
 
 let language = 'en'
+let activeFilm = 'en'
 let activeOs = typeof navigator === 'object' && /Windows/i.test(navigator.userAgent || '') ? 'win' : 'unix'
 let activeScene = 'quota'
 let activeHood = 'isolation'
@@ -232,6 +253,24 @@ function renderMode() {
   }
 }
 
+function renderFilm(forceReload) {
+  if (!demoVideo) return
+  const track = filmTracks[activeFilm] || filmTracks.en
+  if (filmMeta) filmMeta.textContent = track.meta
+  if (filmPlayLabel) filmPlayLabel.textContent = track.play[language]
+  for (const tab of filmTabs) {
+    tab.setAttribute('aria-selected', String(tab.dataset.film === activeFilm))
+  }
+  const currentSrc = demoVideo.getAttribute('src')
+  if (forceReload || currentSrc !== track.src) {
+    demoVideo.pause()
+    demoVideo.setAttribute('poster', track.poster)
+    demoVideo.setAttribute('src', track.src)
+    demoVideo.load()
+    if (filmPlayOverlay) filmPlayOverlay.hidden = false
+  }
+}
+
 function renderLanguage() {
   const zh = language === 'zh'
   document.documentElement.lang = zh ? 'zh-CN' : 'en'
@@ -246,7 +285,9 @@ function renderLanguage() {
     link.href = (zh ? 'zh/' : '') + routePath + '/' + (hash ? '#' + hash : '')
   }
   byId('notice').textContent = ''
+  activeFilm = language
   syncThemeButton()
+  renderFilm(false)
   renderOs()
   renderScene()
   renderHood()
@@ -305,6 +346,27 @@ languageBtn.addEventListener('click', () => {
   }
   renderLanguage()
 })
+
+for (const tab of filmTabs) {
+  tab.addEventListener('click', () => {
+    activeFilm = tab.dataset.film
+    renderFilm(true)
+  })
+}
+
+if (filmPlayOverlay && demoVideo) {
+  filmPlayOverlay.addEventListener('click', () => {
+    filmPlayOverlay.hidden = true
+    const p = demoVideo.play()
+    if (p && typeof p.catch === 'function') p.catch(() => { filmPlayOverlay.hidden = false })
+  })
+  demoVideo.addEventListener('play', () => {
+    filmPlayOverlay.hidden = true
+  })
+  demoVideo.addEventListener('ended', () => {
+    filmPlayOverlay.hidden = false
+  })
+}
 
 for (const tab of sceneTabs) {
   tab.addEventListener('click', () => {

@@ -12,6 +12,14 @@
 
 **不同 harness 里的 AI，一起干活。** 留在你此刻正在用的 harness 里，直接叫本机其他 AI 一起干活（Claude Code、Codex、Cursor、Pi、OpenCode，以及仅限 API/企业版的 [Antigravity](https://broco.yanauto.me/zh/docs/workers/#agy)）。各自拉独立 worktree 并行改代码、换另一家模型盲审 diff，主力快撞额度时顺手交接，全程复用本机已登录的官方 CLI。
 
+<p align="center">
+  <a href="https://broco.yanauto.me/?lang=zh#watch">
+    <img src="https://broco.yanauto.me/assets/media/broco-demo-preview-zh.gif" alt="broco 33 秒演示：别让 AI 自己批改作业——跨模型盲审与实时额度调度" width="760">
+  </a>
+  <br>
+  <sub>33 秒演示 · <a href="https://broco.yanauto.me/?lang=zh#watch">前往 broco.yanauto.me 观看 1080p 有声中文口播版 →</a></sub>
+</p>
+
 ## 快速上手
 
 需要 macOS、Linux 或 Windows 11、Git（Windows 11 需安装 Git for Windows），以及至少两个你已在本机登录好的编程 CLI。一行安装脚本会在需要时自带 Node 运行时；改用 `npm` 安装则需要 Node.js 22.13+。

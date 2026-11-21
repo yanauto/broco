@@ -36,6 +36,7 @@
       <a class="ver-pill" href="changelog/" data-route="changelog">v1.2.1</a>
     </div>
     <nav class="top-nav" aria-label="Main">
+      <a href="#watch" data-zh="演示">Demo</a>
       <a href="#under-the-hood" data-zh="原理">How it works</a>
       <a href="#install" data-zh="安装">Install</a>
       <a href="docs/" data-route="docs" data-zh="文档">Docs</a>
@@ -78,6 +79,8 @@
         <p class="hero-install-note" id="hero-install-note" data-zh="按需自带 Node 运行时，装入独立目录，免管理员权限，保持本机原有 Node 与 npm 原样。">Brings its own Node runtime when needed, installs into its own folder, needs no admin rights, and leaves existing Node/npm untouched.</p>
       </div>
       <div class="hero-aux">
+        <a class="aux-link" href="#watch"><span data-zh="▶ 看 33 秒演示">▶ Watch 32s demo</span></a>
+        <span class="aux-dot" aria-hidden="true">·</span>
         <a class="aux-link" href="docs/" data-route="docs"><span data-zh="阅读文档">Read docs</span> <span aria-hidden="true">→</span></a>
         <span class="aux-dot" aria-hidden="true">·</span>
         <a class="aux-link" href="https://github.com/yanauto/broco">GitHub <span aria-hidden="true">↗</span></a>
@@ -175,9 +178,44 @@
     </div>
   </section>
 
+  <section class="wrap section" id="watch">
+    <div class="section-head">
+      <p class="section-kicker"><span class="tnum">01</span> / <span data-zh="30 秒看懂">IN 30 SECONDS</span></p>
+      <h2 data-zh="别让 AI 自己批改作业——看另一家模型怎么抓坑">Never let an AI grade its own homework.</h2>
+    </div>
+
+    <div class="film-stage">
+      <div class="stage-chrome on-dark film-chrome">
+        <div class="film-chrome-left">
+          <span class="console-dot" aria-hidden="true"></span>
+          <span class="stage-path tnum" id="film-meta">broco-demo-en.mp4 · 1080p · 32s</span>
+        </div>
+        <div class="film-track-tabs" role="tablist" aria-label="Demo video cut" data-zh-aria="切换演示视频版本">
+          <button class="film-track-tab" type="button" role="tab" id="film-tab-en" aria-selected="true" data-film="en">English · 32s</button>
+          <button class="film-track-tab" type="button" role="tab" id="film-tab-zh" aria-selected="false" data-film="zh">中文配音 · 33s</button>
+        </div>
+      </div>
+
+      <div class="film-viewport">
+        <video id="demo-video" class="film-video" controls playsinline preload="metadata" poster="assets/media/broco-demo-en-poster.jpg" src="assets/media/broco-demo-en.mp4"></video>
+        <button id="film-play-overlay" class="film-play-overlay" type="button" aria-label="Play 32-second demo video" data-zh-aria="播放 33 秒演示视频">
+          <span class="film-play-pill">
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.2 2.7a.8.8 0 0 1 1.2-.68l8.4 5.3a.8.8 0 0 1 0 1.36l-8.4 5.3A.8.8 0 0 1 4.2 13.3V2.7Z"/></svg>
+            <span id="film-play-label" data-zh="播放 33 秒演示">Play 32s demo</span>
+          </span>
+        </button>
+      </div>
+
+      <div class="stage-foot">
+        <p id="film-caption" data-zh="协作者写完代码自评满分 → broco 查实时额度 → 换另一家模型盲审 diff → 当场抓出时钟偏差漏洞、修完通过。">A coding agent grades its own PR A+ → broco checks live quotas → another vendor reviews the diff cold → bug caught, fixed, PASS.</p>
+        <a class="stage-doc-link" href="#install"><span data-zh="一行命令安装">Install in one line</span> <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+
   <section class="wrap section" id="under-the-hood">
     <div class="section-head">
-      <p class="section-kicker"><span class="tnum">01</span> / <span data-zh="协作原理">HOW IT WORKS</span></p>
+      <p class="section-kicker"><span class="tnum">02</span> / <span data-zh="协作原理">HOW IT WORKS</span></p>
       <h2 data-zh="本机直连、分支隔离、交接可查">Local processes, isolated branches, clear handoffs.</h2>
     </div>
 
@@ -376,7 +414,7 @@
   <section class="setup-band" id="install">
     <div class="wrap setup-grid">
       <div class="setup-copy">
-        <p class="section-kicker"><span class="tnum">02</span> / <span data-zh="快速上手">GET STARTED</span></p>
+        <p class="section-kicker"><span class="tnum">03</span> / <span data-zh="快速上手">GET STARTED</span></p>
         <h2 data-zh="一行安装，连起本机所有 harness">One line to connect your harnesses.</h2>
         <p class="setup-desc" data-zh="支持 macOS、Linux 与 Windows 11（原生支持 PowerShell、Windows Terminal、cmd，兼容 WSL2），需要 Git 与至少两个本机已登录的编程 CLI。安装脚本按需自带 Node 运行时（已有 Node.js 22.13+ 也可直接用 npm）。broco setup 会探测已安装的 harness，让你确认允许协作的名单、查看实时额度，并把 broco Skill 装进本机各宿主目录。">Supports macOS, Linux, and Windows 11 (PowerShell, Windows Terminal, cmd, or WSL2) with Git and two or more signed-in coding CLIs. The installer brings its own Node runtime when needed (or install via npm on Node.js 22.13+). broco setup detects installed harnesses, lets you confirm which ones can collaborate, prints live quotas, and installs the broco skill into your local hosts.</p>
         <div class="trigger-card">
@@ -451,7 +489,7 @@
 
   <section class="wrap section" id="in-practice">
     <div class="section-head">
-      <p class="section-kicker"><span class="tnum">03</span> / <span data-zh="常见协作时刻">IN PRACTICE</span></p>
+      <p class="section-kicker"><span class="tnum">04</span> / <span data-zh="常见协作时刻">IN PRACTICE</span></p>
       <h2 data-zh="什么时候让它们一起干活">When two harnesses beat one</h2>
     </div>
 

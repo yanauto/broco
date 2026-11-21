@@ -4,7 +4,7 @@ cd -- "$(dirname -- "$0")"
 mkdir -p dist
 stage=$(mktemp -d "$PWD/dist/build.XXXXXXXX")
 trap 'rm -rf -- "$stage"' EXIT
-mkdir -p "$stage/public/assets/fonts"
+mkdir -p "$stage/public/assets/fonts" "$stage/public/assets/media"
 expected="$stage/expected.list"
 actual="$stage/actual.list"
 cat > "$expected" <<'EOF'
@@ -15,6 +15,12 @@ public/assets/broco-foreman-256.png
 public/assets/broco-social-preview-1280x640.png
 public/assets/fonts/instrument-sans-latin.woff2
 public/assets/fonts/jetbrains-mono-latin.woff2
+public/assets/media/broco-demo-en-poster.jpg
+public/assets/media/broco-demo-en.mp4
+public/assets/media/broco-demo-preview-en.gif
+public/assets/media/broco-demo-preview-zh.gif
+public/assets/media/broco-demo-zh-poster.jpg
+public/assets/media/broco-demo-zh.mp4
 public/favicon.ico
 public/index.html
 public/install.ps1
