@@ -14,13 +14,13 @@ broco say investigate "分析失败的测试原因。" --worker codex --model MO
 
 ## 实时额度与实战信号
 
-- **`quota`**：`codex`（`account/rateLimits/read`）与 `agy`（`/usage`）上报实时 5 小时与周额度，紧缺标 `avoid`、充裕标 `plentiful`，并暴露 `agy` 副组额度告警 `tightGroups`。无额度接口的 CLI 标 `unreported`，结合报错自动追踪冷却状态（`recentProblem`）。
+- **`quota`**：`codex`（`account/rateLimits/read`）与 `agy`（`/usage`，仅限 API Key / 企业版——见[风险提示](../workers/#agy)）上报实时 5 小时与周额度，紧缺标 `avoid`、充裕标 `plentiful`，并暴露 `agy` 副组额度告警 `tightGroups`。无额度接口的 CLI 标 `unreported`，结合报错自动追踪冷却状态（`recentProblem`）。
 - **`record`**：来自 `broco done` 累计的真实任务通过／返工／失败统计。模型有 3 张及以上非阻塞实测单后，个人实战战绩优先于目录评级。
 - **`capabilities.input`**：模型能力与当前 CLI 通道的交集（`text`/`image`/`audio`/`video`/`pdf`），加 `--attach` 前需确认为 `true`。
 
 ## 紧凑视图与完整详情
 
-每个当前模型家族占一行，给出真实检测 ID、确认输入能力、档次评级、可用档位与一句简介。档位与 fast 变体合并展示（`variantCount`、`fast`）；`agy` 多档位家族自动折叠至基础家族 ID 并映射 `--effort`。
+每个当前模型家族占一行，给出真实检测 ID、确认输入能力、档次评级、可用档位与一句简介。档位与 fast 变体合并展示（`variantCount`、`fast`）；[`agy`](../workers/#agy)（仅限 API Key / 企业版）的多档位家族会自动折叠至基础家族 ID 并映射 `--effort`。
 
 目录中标记为 `previous generation`、`superseded` 或 `being retired` 的旧型号折叠进 `olderModels`。需要精确变体、旧型号、上下文上限和完整目录元数据时加 `--full`（可配合 `--worker ID`）。用户隐藏的模型在两种视图下均不出现。
 

@@ -7,7 +7,7 @@ Use `--worktree` when two writers could touch the same files or when you want an
 From any Git repository with at least one commit, pass `--worktree` on the first `say` (or `map`):
 
 ```sh
-broco say auth-fix - --worker agy --worktree --bg --json <<'EOF'
+broco say auth-fix - --worker codex --worktree --bg --json <<'EOF'
 Fix token expiry and add regression tests for refresh token clock skew.
 EOF
 broco wait auth-fix --json
@@ -22,7 +22,7 @@ The new branch (`broco/<name>-...`) and worktree start from committed `HEAD`. Re
 broco review auth-fix --bg --json
 ```
 
-When `--by` is omitted, `broco review` automatically chooses an allowed worker from a **different vendor** with available quota headroom — for example reviewing an `agy` patch with `codex` or `claude`. You can also pass `--by claude`, `--by codex`, `--by agy`, `--by cursor-agent`, or `--by pi:<provider>` explicitly.
+When `--by` is omitted, `broco review` automatically chooses an allowed worker from a **different vendor** with available quota headroom — for example reviewing a `codex` patch with `claude`, or a `claude` patch with `codex`. You can also pass `--by claude`, `--by codex`, `--by cursor-agent`, or `--by pi:<provider>` explicitly (for `agy`, see the [API key / Enterprise warning](../workers/#agy)).
 
 The reviewer runs in a separate session with the writer’s prompt, final reply, and changed-file summary, inspecting the writer’s checkout directly. Keep that checkout stable until the review completes.
 

@@ -1,6 +1,6 @@
 # 工人选择与登录
 
-`broco` 让本机已登录的各个 harness 全对称互通：任意主 Agent 都可以按需把任务交给 `claude`、`codex`、`agy`、`cursor-agent`、`pi:<厂商>` 或试跑通过的 `custom:<名称>`。所有内置协作者均以隔离本地子进程直接运行本机官方 CLI，复用你现有的登录态。派活前先读[工人花名册](roster.md)。
+`broco` 让本机已登录的各个 harness 全对称互通：任意主 Agent 都可以按需把任务交给 `claude`、`codex`、`cursor-agent`、`pi:<厂商>`、`custom:<名称>` 或 [`agy`](#agy)（注意：Google 消费者订阅禁止由第三方 Agent 驱动 `agy`）。所有内置协作者均以隔离本地子进程直接运行本机官方 CLI，复用你现有的登录态。派活前先读[工人花名册](roster.md)。
 
 ## 原生 Claude（`claude`）
 
@@ -26,12 +26,16 @@ codex login status
 
 当轮支持插话时第二次 `say` 直接注入，否则排队。若提交前 app-server 不可用，`broco` 自动回退至 `codex exec`。
 
-## Antigravity（`agy`）与 Cursor（`cursor-agent`）
+## Cursor（`cursor-agent`）
 
-`agy` 与 `cursor-agent` 均支持结构化步骤事件与会话 ID 续聊，运行中插话排到下一轮：
+`cursor-agent` 支持结构化步骤事件与会话 ID 续聊，运行中插话排到下一轮：用 `cursor-agent login` 登录、`cursor-agent status` 核对状态、`cursor-agent --list-models` 查看模型。
 
-- **`agy`**：`stdin` 传题，通过 `/usage` 读取多组实时额度（含副组模型额度告警），支持 `text`、`image`、`audio`、`video`、`pdf` 全部五类输入。可用 `agy models` 查看模型。
-- **`cursor-agent`**：用 `cursor-agent login` 登录、`cursor-agent status` 核对状态、`cursor-agent --list-models` 查看模型。
+## agy
+
+> [!WARNING]
+> Google 消费者订阅方案（Free、Google AI Plus、Pro、Ultra）不允许由第三方 Agent（如 Claude Code、Codex）驱动 Antigravity CLI（`agy`），且已有封号先例。`broco` 会在 `broco setup`、`broco roster` 以及单次会话首次派单给 `agy` 时输出非拦截风险提示，不会禁用 `agy`——如需启用请自担风险，且仅建议配合 Gemini API Key 或 Gemini Enterprise / Google Cloud 项目使用。
+
+配合 Gemini API Key 或 Gemini Enterprise / Google Cloud 项目使用时，`agy` 经 `stdin` 传题，通过 `/usage` 读取多组实时额度（含副组模型额度告警），支持 `text`、`image`、`audio`、`video`、`pdf` 全部五类输入，运行中插话排到下一轮。可用 `agy models` 查看模型。
 
 ## pi（`pi:<厂商>`）
 
@@ -42,10 +46,10 @@ npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 pi
 ```
 
-进入 `pi` 后输入 `/login` 连接所需厂商（如 `pi:openai-codex`、`pi:deepseek`）。原生 `codex` 登录不替代 `pi` 的登录，每个 `pi:<厂商>` 也需分别放行。以下命令只检查状态不打印凭据：
+进入 `pi` 后输入 `/login` 连接所需厂商（如 `pi:deepseek`、智谱 GLM 对应的 `pi:zai`，或 `pi:openai-codex`）。原生 `codex` 登录不替代 `pi` 的登录，每个 `pi:<厂商>` 也需分别放行。为 `pi:<厂商>` 显式传 `--model` 时，请带上 `broco roster` 中显示的厂商前缀（例如 `zai/glm-5.3` 或 `deepseek/deepseek-flash`）。以下命令只检查状态不打印凭据：
 
 ```sh
-pi auth check --provider openai-codex --no-refresh
+pi auth check --provider deepseek --no-refresh
 pi --list-models
 ```
 
@@ -54,8 +58,8 @@ pi --list-models
 ## 按单自由搭配
 
 ```sh
-broco say inspect-a "检查 src/auth.ts 的错误处理分支。" --worker claude --bg --json
-broco say inspect-b "检查 src/auth.ts 的错误处理分支。" --worker codex --bg --json
+broco say inspect-a "检查 src/auth.ts 的错误处理分支。" --worker pi:zai --model zai/glm-5.3 --bg --json
+broco say inspect-b "检查 src/auth.ts 的错误处理分支。" --worker claude --bg --json
 ```
 
 一个名字始终绑定其初始工人，但完成一轮后可在下轮切换 `--model` 或 `--effort`。Gemini CLI、OpenCode 或其他 CLI 请使用试跑验证后的[自定义 CLI 模板](custom-cli.md)。

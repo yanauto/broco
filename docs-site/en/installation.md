@@ -7,7 +7,7 @@ Install `broco` once on your machine to let your coding harnesses work together.
 - **OS:** macOS (`arm64` / `x64`), Linux (`x64` / `arm64` glibc), or Windows 11 (`x64` / `arm64`).
 - **Node.js:** Automatically bundled when missing or older than 22.13.0 by the one-line installer; installing directly via `npm` requires **Node.js 22.13+** (for built-in `node:sqlite`).
 - **Git:** Required for isolated worktrees and custom-template trials (Git for Windows on Windows 11).
-- **Local CLIs:** At least two AI CLIs you already signed into locally (for example Claude Code, Codex, Antigravity `agy`, Cursor Agent, OpenCode, or `pi`).
+- **Local CLIs:** At least two AI CLIs you already signed into locally (for example Claude Code, Codex, Cursor Agent, OpenCode, `pi`, or Antigravity `agy` — see the [agy warning](workers/#agy) before enabling `agy`).
 
 ## Install the CLI and open skill
 
@@ -77,7 +77,7 @@ macOS / Linux:
 
 ```sh
 curl -fsSL https://broco.yanauto.me/install.sh | BROCO_NO_SETUP=1 sh
-"$HOME/.local/bin/broco" setup --allow claude,codex,agy --yes --json
+"$HOME/.local/bin/broco" setup --allow claude,codex,pi:deepseek,pi:zai --yes --json
 ```
 
 Windows (PowerShell):
@@ -85,7 +85,7 @@ Windows (PowerShell):
 ```powershell
 $env:BROCO_NO_SETUP = '1'
 irm https://broco.yanauto.me/install.ps1 | iex
-& "$env:LOCALAPPDATA\broco\bin\broco.cmd" setup --allow claude,codex,agy --yes --json
+& "$env:LOCALAPPDATA\broco\bin\broco.cmd" setup --allow claude,codex,pi:deepseek,pi:zai --yes --json
 ```
 
 Invoking `"$HOME/.local/bin/broco"` on Unix (or `BROCO_BIN_DIR`) and `"$env:LOCALAPPDATA\broco\bin\broco.cmd"` on Windows (or `BROCO_INSTALL_DIR`) works immediately across separate agent tool calls even before the parent host refreshes its `PATH`.

@@ -10,7 +10,7 @@
   原 <code>opus-manager</code> (v0.4) · Apache-2.0 · <a href="README.md">English</a> · <a href="https://broco.yanauto.me/?lang=zh">官网</a> · <a href="https://broco.yanauto.me/zh/docs/">文档</a> · <a href="CHANGELOG.md">更新日志</a>
 </p>
 
-**不同 harness 里的 AI，一起干活。** 留在你此刻正在用的 harness 里，直接叫本机其他 AI 一起干活（Claude Code、Codex、Cursor、Antigravity、OpenCode、Pi）。各自拉独立 worktree 并行改代码、换另一家模型盲审 diff，主力快撞额度时顺手交接，全程复用本机已登录的官方 CLI。
+**不同 harness 里的 AI，一起干活。** 留在你此刻正在用的 harness 里，直接叫本机其他 AI 一起干活（Claude Code、Codex、Cursor、Pi、OpenCode，以及仅限 API/企业版的 [Antigravity](https://broco.yanauto.me/zh/docs/workers/#agy)）。各自拉独立 worktree 并行改代码、换另一家模型盲审 diff，主力快撞额度时顺手交接，全程复用本机已登录的官方 CLI。
 
 ## 快速上手
 
@@ -74,7 +74,7 @@ Windows（PowerShell）：
 3. 当场打印带实时额度状态的花名册。
 4. 将一份开放 `SKILL.md` 装入 `~/.agents/skills/broco/`，并自动同步挂载到已探测到的宿主 harness（**Claude Code**、**Codex**、**Cursor**、**Antigravity**、**OpenCode**、**Pi**——同时为 Pi 链接 `~/.pi/agent/skills/broco` 并支持 `PI_CODING_AGENT_DIR`）。
 
-**原生支持 Windows 11**：直接在 PowerShell、Windows Terminal 或 `cmd` 中运行（WSL2 也可通过 Linux 后端独立使用），通过 Windows 命名管道（`\\.\pipe\broco-*`）通信，直接解析 `.exe` 与 npm `.cmd` CLI 且免除 shell 引号转义问题，生成固定的 `~/.agents/skills/broco/broco.cmd` 启动器，并通过 NTFS 目录联接挂载 Pi 技能（无需管理员权限）。详见 [Windows 11 环境与排障说明](docs-site/zh/installation.md#windows-11-说明)。
+**原生支持 Windows 11**：直接在 PowerShell、Windows Terminal 或 `cmd` 中运行（WSL2 也可通过 Linux 后端独立使用），通过 Windows 命名管道（`\\.\pipe\broco-*`）通信，直接解析 `.exe` 与 npm `.cmd` CLI 且免除 shell 引号转义问题，生成固定的 `~/.agents/skills/broco/broco.cmd` 启动器，并通过 NTFS 目录联接挂载 Pi 技能（无需管理员权限）。详见 [Windows 11 环境与排障说明](https://broco.yanauto.me/zh/docs/#windows-11-说明)。
 
 装完直接回到你当前的 harness，像平时一样说自然语言：
 
@@ -90,7 +90,7 @@ Windows（PowerShell）：
 | --- | --- | --- |
 | `claude` | 原生 `claude -p --output-format stream-json` + `--resume`，stdin 传题（经 `--add-dir` 与 `Read` 支持 `text`、`image`、`pdf`，拒绝音视频） | 排到下一轮 |
 | `codex` | 原生 Codex app-server + 实时 5h／周额度（`text`、`image`、上报 `audio`） | 当前轮支持时注入，否则排队 |
-| `agy` | 原生 Antigravity CLI（stdin 传题 + `/usage` 多组额度，支持 `text/image/audio/video/pdf`） | 排到下一轮 |
+| `agy` | 原生 Antigravity CLI（stdin 传题 + `/usage` 多组额度，支持 `text/image/audio/video/pdf`）。**注意：** Google 消费者订阅（Free、AI Plus、Pro、Ultra）不允许第三方 Agent 驱动 `agy`，已有封号先例；仅建议配合 Gemini API Key 或 Gemini Enterprise / Google Cloud 项目自担风险使用（[详情](https://broco.yanauto.me/zh/docs/workers/#agy)） | 排到下一轮 |
 | `cursor-agent` | 原生 Cursor CLI，结构化事件、按会话 ID 续聊 | 排到下一轮 |
 | `pi:<厂商>` | pi RPC，按厂商单独放行（`text`、`image`） | pi 确认当轮投递时注入，否则排队 |
 | `custom:<名称>` | 两轮试跑通过的新会话／续聊命令模板 | 排队；无原生步骤和缓存读数 |
@@ -120,12 +120,12 @@ broco roster --json
 broco roster --worker codex --json --full
 ```
 
-`status` 在不拉起未启动后台的前提下检查 runner 状态、在跑／排队单、批次、活跃代理与可清理 worktree。`roster` 展示允许的模型家族、登录状态、输入能力、用户备注、规矩以及实时额度（`avoid`、`plentiful` 与 `agy` 副组额度告警），复用 45 秒共享缓存（`--refresh` 强制重探，`--global` 查看全局默认）。
+`status` 在不拉起未启动后台的前提下检查 runner 状态、在跑／排队单、批次、活跃代理与可清理 worktree。`roster` 展示允许的模型家族、登录状态、输入能力、用户备注、规矩以及实时额度（`avoid` 与 `plentiful`），复用 45 秒共享缓存（`--refresh` 强制重探，`--global` 查看全局默认）。
 
 ### 派单、等待、看 diff、跨模型盲审与清理
 
 ```sh
-broco say auth-fix - --worker agy --worktree --bg --json <<'EOF'
+broco say auth-fix - --worker pi:zai --worktree --bg --json <<'EOF'
 修复 `verifyToken()` 过期测试，并覆盖 `$REFRESH_TOKEN` 边界场景。
 EOF
 broco wait auth-fix --json
@@ -139,7 +139,7 @@ broco clean auth-fix --delete-branch
 - **`say`** 支持行内文本、`--file <路径>` 或 `stdin`（`-`／管道／heredoc；Windows PowerShell 或 `cmd` 下请改用 `--file <路径>` 或 `@' ... '@` 管道替代 `<<'EOF'`），含多行代码块、反引号和 `$` 变量时无需转义。同名续聊、异名并行；可用 `--cwd 目录` 跨目录施工，`--attach 文件` 传确认支持的附件，`--new-task` 开启新任务；当上下文触及 60% 阈值出现 `contextWarning` 时，空闲后用 `--from 旧名字` 无损交接。
 - **`wait`** 为事件驱动即刻唤醒（0ms，无 SQLite 轮询），直接返回 `reply`、`task`、`cwd`、`worktree`、`branch` 和 `changedFiles`。
 - **`diff`** 相对基线提交查看跟踪与未跟踪的全部改动。
-- **`review`** 默认跨模型盲审：省略 `--by` 时，自动从允许名单中挑选与原单不同厂商且额度宽裕的工人（也可显式指定 `--by claude`、`--by codex` 等）。
+- **`review`** 默认跨模型盲审：省略 `--by` 时，自动从允许名单中挑选与原单不同厂商且额度宽裕的工人——例如用 `claude` 盲审 `codex` 的补丁，或用 `claude` 盲审 `pi:zai` 的改动（也可显式指定 `--by claude`、`--by codex` 等）。
 - **`done` 与 `clean`** 登记单次结果（`pass`／`rework`／`fail`／`blocked`），合并后安全清理残留 worktree 与分支（可先 `--dry-run` 预览）。
 
 ### `map` 批量分片并发
@@ -147,7 +147,7 @@ broco clean auth-fix --delete-branch
 一份需求套到几十个文件或输入分片上（`<前缀>-1 .. <前缀>-N`），按独立 FIFO 并发上限排队跑完：
 
 ```sh
-broco map x-tag --brief-file brief.md --inputs shard-*.jsonl --worker agy --effort high --bg --json
+broco map x-tag --brief-file brief.md --inputs shard-*.jsonl --worker pi:deepseek --effort high --bg --json
 broco wait x-tag --json
 broco retry x-tag --bg --json
 broco show x-tag --status error,review --full --json
@@ -162,7 +162,7 @@ broco clean x-tag --delete-branch
 只有当某个仓库需要独立硬隔离名单（如私密仓库禁某家厂商）、独立并发上限、项目规矩或重度经理模式时再启用：
 
 ```sh
-broco init --allow claude,codex,agy,pi:deepseek --default-worker agy --concurrency 4
+broco init --allow claude,codex,pi:deepseek,pi:zai --default-worker pi:zai --concurrency 4
 broco init --manager-mode
 broco uninit
 ```
@@ -177,11 +177,11 @@ broco uninit
 
 ```sh
 broco set concurrency 6
-broco set default-worker agy
-broco allow claude,codex,agy --default-worker agy
+broco set default-worker pi:zai
+broco allow claude,codex,pi:deepseek,pi:zai --default-worker pi:zai
 broco deny cursor-agent
-broco defaults agy --model gemini-4-argon --effort high
-broco note agy "额度宽裕，适合并发 map 任务"
+broco defaults pi:zai --model zai/glm-5.3 --effort high
+broco note pi:deepseek "速度快、成本低，适合并发 map 任务"
 broco rules --add "交付前先跑通测试"
 broco hide codex gpt-5.6-sol
 broco audit --limit 10
@@ -222,7 +222,7 @@ broco stats --project . --json
 2. 执行 `broco shutdown`（平滑停止旧协议后台及 `~/.cc-bro` 套接字）和 `broco setup --migrate-cc-bro`（或直接 `broco setup` 全新开始）。
 3. `broco setup --migrate-cc-bro` 会将本机 `~/.cc-bro/` 无损复制迁移至 `~/.broco/`，完整保留项目策略、会话与工单历史且不删除原目录。
 
-详见[升级指南](docs-site/zh/upgrade.md)。
+详见[升级指南](https://broco.yanauto.me/zh/docs/upgrade/)。
 
 ## 从源码开发
 

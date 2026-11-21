@@ -8,11 +8,11 @@ Every setting command accepts `--global` or `--project PATH` (plus `--json`) and
 
 ```sh
 broco set concurrency 6
-broco set default-worker agy
-broco allow claude,codex,agy --default-worker agy
+broco set default-worker pi:zai
+broco allow claude,codex,pi:deepseek,pi:zai --default-worker pi:zai
 broco deny cursor-agent
-broco defaults agy --model gemini-4-argon --effort high
-broco note agy "High headroom plan; good for batch map jobs"
+broco defaults pi:zai --model zai/glm-5.3 --effort high
+broco note pi:deepseek "Fast and inexpensive; good for batch map jobs"
 broco rules --add "Run tests before finishing"
 broco hide codex gpt-5.6-sol
 broco unhide codex gpt-5.6-sol
@@ -28,6 +28,6 @@ broco undo
 
 Run `broco ui` and open **Settings** in the header to inspect detected executables, versions, effective defaults, and audit history:
 
-- **Detection** is strictly read-only: Claude Code checks CLI availability and login state; Codex reads app-server `model/list`, `config/read`, `account/read`, and rate limits; `pi` runs non-generating RPC queries and `auth check --no-refresh`; `agy` reads `models`, `/model`, `/effort`, and `/usage`; Cursor reads `models` and `status`. Credential file values are never read and session histories are never inspected.
-- **Explicit login**: Authentication stays inside each CLI’s own login flow (`claude`, `codex login`, `agy`, `cursor-agent login`, or `pi` `/login`). `broco` never collects or stores provider API keys.
+- **Detection** is strictly read-only: Claude Code checks CLI availability and login state; Codex reads app-server `model/list`, `config/read`, `account/read`, and rate limits; `pi` runs non-generating RPC queries and `auth check --no-refresh`; `agy` (see the [agy warning](../workers/#agy) — API key / Enterprise only) reads `models`, `/model`, `/effort`, and `/usage`; Cursor reads `models` and `status`. Credential file values are never read and session histories are never inspected.
+- **Explicit login**: Authentication stays inside each CLI’s own login flow (`claude`, `codex login`, `cursor-agent login`, `pi` `/login`, or `agy` with a Gemini API key / Enterprise project). `broco` never collects or stores provider API keys.
 - **Custom templates**: Add other non-interactive CLIs as `custom:name` via [Custom CLI templates](custom-cli.md).

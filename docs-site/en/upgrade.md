@@ -2,7 +2,7 @@
 
 `broco` is the direct evolution of `opus-manager` (v0.4) and `cc-bro` (0.4.x). Upgrading preserves your projects, policies, named sessions, and ticket history.
 
-## Upgrading from 1.0.x or 1.1.x
+## Upgrading from an earlier 1.x release
 
 1. Let any active turns you want to preserve finish (`broco status`).
 2. Stop the running daemon (`broco shutdown`), then upgrade in place using your current install method — or remove an older global `npm` shim (`npm uninstall -g @yanauto/broco`) first when switching to the one-line installer so an earlier `PATH` entry does not shadow the new binary:
@@ -50,7 +50,7 @@ Running `broco setup --migrate-cc-bro` losslessly copies your existing `~/.cc-br
 
 - **Package & paths**: CLI command `broco`, data directory `~/.broco/` (`$BROCO_HOME`), optional per-repo directory `.broco/`, and environment variables `BROCO_*` (including `BROCO_TZ` for timezone overrides and `BROCO_IN_WORKER=1` for recursion protection).
 - **L0 zero-`init`**: You no longer need `init` in every repository; global policy works everywhere without creating dotfiles. Existing `.broco/` or migrated per-repo policies continue to override global defaults.
-- **Built-in `claude` worker**: Native `claude` is now a symmetric worker alongside `codex`, `agy`, `cursor-agent`, `pi:<provider>`, and `custom:<name>`. Confirm whether you want `claude` in your global allowlist during `broco setup`.
+- **Built-in `claude` worker**: Native `claude` is now a symmetric worker alongside `codex`, `cursor-agent`, `pi:<provider>`, `custom:<name>`, and `agy` (API key / Enterprise only; see [warning](../workers/#agy)). Confirm whether you want `claude` in your global allowlist during `broco setup`.
 - **Default cross-vendor `review`**: `broco review <name>` now auto-selects a different-vendor worker with quota headroom when `--by` is omitted.
 - **Local timezone**: Timestamps follow `BROCO_TZ` → `TZ` → your system timezone instead of hardcoding `Asia/Shanghai`.
 

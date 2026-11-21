@@ -7,7 +7,7 @@
 在已有至少一次提交的 Git 仓库里，首条 `say`（或 `map`）带上 `--worktree`：
 
 ```sh
-broco say auth-fix - --worker agy --worktree --bg --json <<'EOF'
+broco say auth-fix - --worker codex --worktree --bg --json <<'EOF'
 修复 token 过期校验，并补上刷新 token 时钟偏差的回归测试。
 EOF
 broco wait auth-fix --json
@@ -22,7 +22,7 @@ broco diff auth-fix --stat
 broco review auth-fix --bg --json
 ```
 
-省略 `--by` 时，`broco review` 会自动从允许名单里挑选与原单**不同厂商**且当前额度宽裕的工人——例如 `agy` 写的改动自动交给 `codex` 或 `claude` 盲审。也可以显式传 `--by claude`、`--by codex`、`--by agy`、`--by cursor-agent` 或 `--by pi:<厂商>`。
+省略 `--by` 时，`broco review` 会自动从允许名单里挑选与原单**不同厂商**且当前额度宽裕的工人——例如 `codex` 写的改动自动交给 `claude` 盲审，或由 `codex` 盲审 `claude` 的改动。也可以显式传 `--by claude`、`--by codex`、`--by cursor-agent` 或 `--by pi:<厂商>`（`agy` 仅建议配合 API Key 或企业版使用，见[风险说明](../workers/#agy)）。
 
 审查者在独立会话里拿到原单题面、最终回复与改动文件列表，并直接检视写单者的工作区。审查结束前请保持该工作区稳定。
 

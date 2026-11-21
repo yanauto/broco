@@ -1,12 +1,19 @@
 import assert from 'node:assert/strict'
+import { execFile } from 'node:child_process'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { delimiter, join } from 'node:path'
+import { delimiter, dirname, join } from 'node:path'
 import test from 'node:test'
+import { promisify } from 'node:util'
 import { agyQuota, codexQuota, quotaText, tight, windowLabel } from '../lib/quota.mjs'
 import { clearDetectCache, detectCli, discoverPi, readAgyQuota } from '../lib/detect.mjs'
+import { repo } from '../lib/paths.mjs'
 import { Store } from '../lib/store.mjs'
-import { writeFakeCli } from './harness.mjs'
+import { AGY_TOS_DOCS_URL, AGY_TOS_WARNING, agyTosWarning } from '../lib/worker-policy.mjs'
+import { harness, writeFakeCli } from './harness.mjs'
+
+const exec = promisify(execFile)
+const brocoBin = join(repo, 'bin', 'broco')
 
 const sampleUsage = {
   status: 'SUCCESS',
@@ -252,4 +259,105 @@ test('detectCli populates pi reasoning model efforts from get_available_thinking
   writeFileSync(noLevelsFlag, '1')
   const fallback = await detectCli('pi:zai-coding-cn', work, { refresh: true })
   assert.deepEqual(fallback.models[0].efforts, ['low', 'medium', 'high'])
+})
+
+test('agy ToS warning surfaces without blocking in setup, roster, first dispatch (say/map/review), and SKILL.md', async t => {
+  const expected = agyTosWarning()
+  assert.equal(expected.code, 'agy-tos')
+  assert.equal(expected.worker, 'agy')
+  assert.equal(expected.docs, AGY_TOS_DOCS_URL)
+  assert.ok(AGY_TOS_WARNING.includes(AGY_TOS_DOCS_URL))
+
+  const skillText = readFileSync(join(repo, 'skills', 'broco', 'SKILL.md'), 'utf8')
+  assert.ok(skillText.includes(AGY_TOS_DOCS_URL))
+  assert.match(skillText, /relay this warning to the user/i)
+  assert.match(skillText, /Prefer other allowed workers/i)
+
+  const hDetected = harness(t)
+  const setupWithAgyJson = JSON.parse((await exec(process.execPath, [brocoBin, 'setup', '--json'], { env: hDetected.env, cwd: hDetected.cwd })).stdout.trim())
+  assert.deepEqual(setupWithAgyJson.warnings, [expected])
+  const setupWithAgyText = (await exec(process.execPath, [brocoBin, 'setup'], { env: hDetected.env, cwd: hDetected.cwd })).stdout
+  assert.ok(setupWithAgyText.includes('Warning (agy): ' + AGY_TOS_WARNING))
+
+  const noAgyBin = join(hDetected.base, 'no-agy-bin')
+  mkdirSync(noAgyBin, { recursive: true })
+  const codexFixture = readFileSync(join(repo, 'test', 'fixtures', 'codex'), 'utf8')
+  writeFakeCli(noAgyBin, 'codex', codexFixture)
+  const noAgyPath = [noAgyBin, dirname(process.execPath), '/usr/bin', '/bin'].join(delimiter)
+
+  const hNoAgy = harness(t, false, { PATH: noAgyPath })
+  const setupNoAgyEnv = { ...hNoAgy.env, PATH: noAgyPath }
+  const setupNoAgyJson = JSON.parse((await exec(process.execPath, [brocoBin, 'setup', '--json'], { env: setupNoAgyEnv, cwd: hNoAgy.cwd })).stdout.trim())
+  assert.deepEqual(setupNoAgyJson.warnings, [])
+  const setupNoAgyText = (await exec(process.execPath, [brocoBin, 'setup'], { env: setupNoAgyEnv, cwd: hNoAgy.cwd })).stdout
+  assert.equal(setupNoAgyText.includes(AGY_TOS_WARNING), false)
+
+  const setupAllowAgyJson = JSON.parse((await exec(process.execPath, [brocoBin, 'setup', '--allow', 'codex,agy', '--default-worker', 'codex', '--json'], { env: setupNoAgyEnv, cwd: hNoAgy.cwd })).stdout.trim())
+  assert.deepEqual(setupAllowAgyJson.allowlist.allow, ['codex', 'agy'])
+  assert.deepEqual(setupAllowAgyJson.warnings, [expected])
+  const setupAllowAgyText = (await exec(process.execPath, [brocoBin, 'setup', '--allow', 'codex,agy', '--default-worker', 'codex'], { env: setupNoAgyEnv, cwd: hNoAgy.cwd })).stdout
+  assert.ok(setupAllowAgyText.includes('Warning (agy): ' + AGY_TOS_WARNING))
+
+  const h = harness(t)
+  const previewRosterJson = await h.json('roster', '--global')
+  const previewAgy = previewRosterJson.workers.find(w => w.id === 'agy')
+  assert.deepEqual(previewAgy?.tosWarning, expected)
+  assert.ok(previewAgy?.warnings?.includes(AGY_TOS_WARNING))
+  const previewRosterText = await h.cli('roster', '--global')
+  assert.ok(previewRosterText.includes('  Warning: ' + AGY_TOS_WARNING))
+
+  await h.json('init', '--allow', 'codex', '--default-worker', 'codex')
+  const deniedRoster = await h.json('roster')
+  assert.deepEqual(deniedRoster.workers.find(w => w.id === 'agy'), { id: 'agy', allowed: false })
+  assert.equal(deniedRoster.workers.find(w => w.id === 'codex')?.tosWarning, undefined)
+
+  await h.json('allow', 'agy')
+  const allowedCompact = await h.json('roster')
+  const agyCompact = allowedCompact.workers.find(w => w.id === 'agy')
+  assert.deepEqual(agyCompact?.tosWarning, expected)
+  assert.ok(agyCompact?.warnings?.includes(AGY_TOS_WARNING))
+  assert.equal(allowedCompact.workers.find(w => w.id === 'codex')?.tosWarning, undefined)
+
+  const allowedFull = await h.json('roster', '--full', '--worker', 'agy')
+  assert.deepEqual(allowedFull.workers[0]?.tosWarning, expected)
+  const allowedText = await h.cli('roster')
+  assert.ok(allowedText.includes('  Warning: ' + AGY_TOS_WARNING))
+
+  const codexTurn = await h.json('say', 'codex-job', 'hello codex', '--worker', 'codex')
+  assert.equal(codexTurn.warnings, undefined)
+
+  const agyTurn1 = await h.json('say', 'agy-job', 'first turn', '--worker', 'agy')
+  assert.equal(agyTurn1.reply, 'first turn')
+  assert.deepEqual(agyTurn1.warnings, [expected])
+
+  const agyTurn2 = await h.json('say', 'agy-job', 'second turn')
+  assert.equal(agyTurn2.reply, 'second turn')
+  assert.equal(agyTurn2.warnings, undefined)
+
+  const agyBg1 = await exec(process.execPath, [brocoBin, 'say', 'agy-human', 'turn one', '--worker', 'agy', '--bg'], { env: h.env, cwd: h.cwd })
+  assert.ok(agyBg1.stdout.includes('Warning (agy): ' + AGY_TOS_WARNING))
+  await h.json('wait', 'agy-human')
+  const agyBg2 = await exec(process.execPath, [brocoBin, 'say', 'agy-human', 'turn two', '--bg'], { env: h.env, cwd: h.cwd })
+  assert.equal(agyBg2.stdout.includes(AGY_TOS_WARNING), false)
+  await h.json('wait', 'agy-human')
+
+  const mapBgJson = await h.json('map', 'agy-batch', '--brief', '{input}', '--inputs', 'one,two', '--worker', 'agy', '--bg')
+  assert.deepEqual(mapBgJson.warnings, [expected])
+  await h.json('wait', 'agy-batch')
+
+  const mapBgHuman = await exec(process.execPath, [brocoBin, 'map', 'agy-batch-h', '--brief', '{input}', '--inputs', 'a,b', '--worker', 'agy', '--bg'], { env: h.env, cwd: h.cwd })
+  assert.equal(mapBgHuman.stdout.split(AGY_TOS_WARNING).length - 1, 1)
+  await h.json('wait', 'agy-batch-h')
+
+  const mapFgJson = await h.json('map', 'agy-batch-fg', '--brief', '{input}', '--inputs', 'x,y', '--worker', 'agy')
+  assert.deepEqual(mapFgJson.warnings, [expected])
+
+  const reviewJson = await h.json('review', 'codex-job', '--by', 'agy', '--bg')
+  assert.deepEqual(reviewJson.warnings, [expected])
+  await h.json('wait', reviewJson.name)
+
+  const reviewHuman = await exec(process.execPath, [brocoBin, 'review', 'codex-job', '--bg'], { env: h.env, cwd: h.cwd })
+  assert.ok(reviewHuman.stdout.includes('Warning (agy): ' + AGY_TOS_WARNING))
+  const reviewName = reviewHuman.stdout.split(/\s+/)[0]
+  await h.json('wait', reviewName)
 })

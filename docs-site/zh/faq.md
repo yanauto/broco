@@ -20,7 +20,11 @@
 
 ## 实时额度是怎么读取的？
 
-按各 CLI 原生能力尽力读取：`codex`（`account/rateLimits/read`）与 `agy`（`/usage`）直接上报 5 小时与周额度（`avoid`、`plentiful` 及 `agy` 副组告警）。无额度接口的 CLI 标为 `unreported`，结合报错自动维护冷却状态（`recentProblem`）。
+按各 CLI 原生能力尽力读取：`codex`（`account/rateLimits/read`）与 `agy`（`/usage`，仅限 API Key / 企业版——见[风险提示](../workers/#agy)）直接上报 5 小时与周额度（`avoid`、`plentiful` 及 `agy` 副组告警）。无额度接口的 CLI 标为 `unreported`，结合报错自动维护冷却状态（`recentProblem`）。
+
+## 个人 Google 订阅方案能安全使用 Antigravity（`agy`）吗？
+
+不能。Google 消费者订阅（Free、AI Plus、Pro、Ultra）禁止由第三方 Agent 驱动 Antigravity CLI，已有封号先例。`broco` 保留支持且不强制拦截，如需使用请自行承担风险，且仅建议配合 Gemini API Key 或 Gemini Enterprise / Google Cloud 项目使用。详见[工人选择与登录（`#agy`）](../workers/#agy)。
 
 ## 时间显示按什么时区？
 
@@ -36,7 +40,7 @@
 
 ## 支持哪些平台与使用环境？
 
-`broco` 原生支持 macOS、Linux 与 Windows 11（PowerShell、Windows Terminal 与 `cmd`，WSL2 可通过 Linux 后端运行），需要 Git，适合在同一台电脑上装有两个及以上已登录编程 harness（Claude Code、Codex、Cursor、Antigravity、OpenCode、Pi）的开发工作流。一行安装脚本会在需要时自带 Node 24 LTS 运行时（免管理员权限），通过 `npm` 安装则支持 Node.js 22.13+。原生 Windows 下通过命名管道（`\\.\pipe\broco-*`）通信、直接解析 `.exe` 与 npm `.cmd` CLI、生成 `broco.cmd` 技能启动器并通过免管理员权限的 NTFS 目录联接挂载 Pi 技能。同模型族内的几行快速小改，直接用当前宿主自带的 subagent 通常最轻快。
+`broco` 原生支持 macOS、Linux 与 Windows 11（PowerShell、Windows Terminal 与 `cmd`，WSL2 可通过 Linux 后端运行），需要 Git，适合在同一台电脑上装有两个及以上已登录编程 harness（Claude Code、Codex、Cursor、Pi、OpenCode，或配合 API/企业版使用的 Antigravity——见 [`#agy`](../workers/#agy)）的开发工作流。一行安装脚本会在需要时自带 Node 24 LTS 运行时（免管理员权限），通过 `npm` 安装则支持 Node.js 22.13+。原生 Windows 下通过命名管道（`\\.\pipe\broco-*`）通信、直接解析 `.exe` 与 npm `.cmd` CLI、生成 `broco.cmd` 技能启动器并通过免管理员权限的 NTFS 目录联接挂载 Pi 技能。同模型族内的几行快速小改，直接用当前宿主自带的 subagent 通常最轻快。
 
 ## 一行安装脚本会改动本机原有的 Node 或 npm 吗？
 

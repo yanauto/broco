@@ -8,11 +8,11 @@
 
 ```sh
 broco set concurrency 6
-broco set default-worker agy
-broco allow claude,codex,agy --default-worker agy
+broco set default-worker pi:zai
+broco allow claude,codex,pi:deepseek,pi:zai --default-worker pi:zai
 broco deny cursor-agent
-broco defaults agy --model gemini-4-argon --effort high
-broco note agy "额度宽裕，适合并发 map 分片任务"
+broco defaults pi:zai --model zai/glm-5.3 --effort high
+broco note pi:deepseek "速度快、成本低，适合并发 map 分片任务"
 broco rules --add "交付前先跑通测试"
 broco hide codex gpt-5.6-sol
 broco unhide codex gpt-5.6-sol
@@ -28,6 +28,6 @@ broco undo
 
 运行 `broco ui` 点击页头**配置**，可查看本机检测到的 CLI、版本号、生效默认值与审计记录：
 
-- **纯只读检测**：Claude Code 检查 CLI 可用性与登录状态；Codex 通过 app-server 查 `model/list`、`config/read`、`account/read` 与实时额度；`pi` 走非生成式 RPC 查询与 `auth check --no-refresh`；`agy` 查 `models`、`/model`、`/effort` 与 `/usage`；Cursor 查 `models` 与 `status`。绝不读取凭据文件明文，不翻查会话历史。
-- **显式登录**：鉴权始终由各 CLI 自行完成（`claude`、`codex login`、`agy`、`cursor-agent login` 或 `pi` `/login`），`broco` 不收集也不保存任何 API Key。
+- **纯只读检测**：Claude Code 检查 CLI 可用性与登录状态；Codex 通过 app-server 查 `model/list`、`config/read`、`account/read` 与实时额度；`pi` 走非生成式 RPC 查询与 `auth check --no-refresh`；`agy`（见[风险提示](../workers/#agy)，仅限 API Key / Enterprise）查 `models`、`/model`、`/effort` 与 `/usage`；Cursor 查 `models` 与 `status`。绝不读取凭据文件明文，不翻查会话历史。
+- **显式登录**：鉴权始终由各 CLI 自行完成（`claude`、`codex login`、`cursor-agent login`、`pi` `/login`，或配合 Gemini API Key / 企业版项目的 `agy`），`broco` 不收集也不保存任何 API Key。
 - **自定义模板**：其他非交互 CLI 可登记为 `custom:名称`，详见[自定义 CLI 模板](custom-cli.md)。

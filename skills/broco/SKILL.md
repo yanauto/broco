@@ -24,6 +24,13 @@ Default to doing quick work yourself or using your host's built-in subagents:
 
 Worker sessions run with `BROCO_IN_WORKER=1`. Inside a worker session, `say`, `review`, `map`, and `retry` are **rejected by default** to prevent recursive dispatch loops. Complete your assigned task and report back to your caller instead; only pass `--allow-nested` when explicitly authorized to orchestrate sub-workers.
 
+## Antigravity (`agy`) Terms-of-Service Warning
+
+Google's consumer plans (Free, AI Plus, Pro, Ultra) do not allow third-party agents to drive the Antigravity CLI; using `agy` as a `broco` worker may get the account suspended. It should only be used with a Gemini API key or a Gemini Enterprise / Google Cloud project (details: `https://broco.yanauto.me/docs/workers/#agy`).
+
+- **Always relay this warning to the user** before allowing `agy` (`setup`, `allow`, `init`) or dispatching work to `agy` (`say`, `map`, `review`).
+- **Prefer other allowed workers** (`pi:<provider>`, `codex`, `claude`, `cursor-agent`) by default unless the user explicitly picks `agy`.
+
 ## Workflow
 
 Quote names, short prompts, and option values as separate arguments. For multi-line, backtick-heavy, or `$VAR`-containing prompts, pass `--file /path/to/prompt.md` or read stdin via `-` (`{{launcher}} say NAME - --bg --json <<'EOF' ... EOF`). To work in another directory while keeping the current project's policy, pass `say --cwd DIR` on a new name (`~/` expands automatically; conflicts with `--worktree`). From outside a directory, pass `--project PATH`.

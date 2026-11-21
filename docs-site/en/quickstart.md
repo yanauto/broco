@@ -23,7 +23,7 @@ broco say test-map "Locate the tests and tell me how to run one. Do not edit fil
 `--bg` returns a receipt immediately with `name` and `turn`. A new name (`test-map`) starts a fresh persistent session; reusing the same name continues that native session. For multi-line prompts containing markdown, backticks, or `$VAR`, pass `--file prompt.md` or pipe via `stdin` (`-`; on Windows PowerShell or `cmd`, use `--file prompt.md` or pipe `@' ... '@` instead of `<<'EOF'`):
 
 ```sh
-broco say auth-fix - --worker agy --worktree --bg --json <<'EOF'
+broco say auth-fix - --worker pi:zai --worktree --bg --json <<'EOF'
 Fix the failing `verifyToken()` expiry test and cover `$REFRESH_TOKEN` edge cases.
 EOF
 ```

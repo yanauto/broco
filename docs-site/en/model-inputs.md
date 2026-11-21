@@ -19,7 +19,7 @@ Repeat `--attach` for multiple files. Paths are resolved from the sending termin
 | --- | --- |
 | `claude` print / stream-json | Passes prompts over `stdin` and supports `text`, `image`, and `pdf` attachments via `--add-dir` and the `Read` tool (rejects `audio` and `video`). |
 | Codex app-server | Sends images as `localImage` input blocks and supports `localAudio` when the selected model reports audio support. `codex exec` fallback uses repeated `--image` and rejects audio instead of dropping it. |
-| `agy` stdin / stream-json | Passes prompts via `stdin` and supports all five input modalities (`text`, `image`, `audio`, `video`, `pdf`) when supported by the selected model. |
+| `agy` stdin / stream-json | Passes prompts via `stdin` and supports all five input modalities (`text`, `image`, `audio`, `video`, `pdf`) when supported by the selected model. Use only with a Gemini API key or Enterprise / Google Cloud project ([warning](../workers/#agy)). |
 | `pi` RPC | Sends `images` content blocks (`type`, base64 `data`, `mimeType`). Its `input`, `contextWindow`, and `maxTokens` fields supply exact metadata without parsing rounded tables. |
 | `cursor-agent` print | No direct media attachment flag is documented for the headless print adapter; media input remains `unknown` and explicit attachments are rejected. |
 | `custom:<name>` templates | Templates pass text arguments or `stdin`; explicit media attachments remain `unknown` and are rejected. |

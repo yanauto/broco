@@ -1,6 +1,6 @@
 # Workers and login
 
-`broco` connects all your signed-in local harnesses symmetrically: any host agent can delegate to `claude`, `codex`, `agy`, `cursor-agent`, `pi:<provider>`, or a trial-tested `custom:<name>`. Every built-in worker runs as an isolated local subprocess of the official CLI using your existing login. Read [the roster](roster.md) before dispatching.
+`broco` connects all your signed-in local harnesses symmetrically: any host agent can delegate to `claude`, `codex`, `cursor-agent`, `pi:<provider>`, `custom:<name>`, or [`agy`](#agy) (note: consumer Google plans prohibit third-party agents driving `agy`). Every built-in worker runs as an isolated local subprocess of the official CLI using your existing login. Read [the roster](roster.md) before dispatching.
 
 ## Native Claude (`claude`)
 
@@ -26,12 +26,16 @@ codex login status
 
 When a turn accepts steering, a second `say` injects into the running turn; otherwise it queues. If app-server is unavailable before submission, `broco` falls back to `codex exec`.
 
-## Antigravity (`agy`) and Cursor (`cursor-agent`)
+## Cursor (`cursor-agent`)
 
-Use `agy` and `cursor-agent` for native structured events and session ID resume. Follow-ups during an active turn queue for the next turn.
+Use `cursor-agent` for native structured events and session ID resume. Follow-ups during an active turn queue for the next turn. Sign in with `cursor-agent login`, check status with `cursor-agent status`, and list models with `cursor-agent --list-models`.
 
-- **`agy`**: passes prompts via `stdin`, reads multi-group quotas via `/usage` (including secondary model-group alerts), and supports all five input modalities (`text`, `image`, `audio`, `video`, `pdf`). Check models with `agy models`.
-- **`cursor-agent`**: sign in with `cursor-agent login`, check status with `cursor-agent status`, and list models with `cursor-agent --list-models`.
+## agy
+
+> [!WARNING]
+> Google's consumer plans (Free, Google AI Plus, Pro, and Ultra) do not allow third-party agents (such as Claude Code or Codex) to drive the Antigravity CLI (`agy`), and accounts have been suspended for doing so. `broco` prints a non-blocking warning in `broco setup`, `broco roster`, and on the first `agy` dispatch in a session without disabling `agy` — use `agy` only with a Gemini API key or a Gemini Enterprise / Google Cloud project, at your own risk.
+
+When used with a Gemini API key or Gemini Enterprise / Google Cloud project, `agy` passes prompts via `stdin`, reads multi-group quotas via `/usage` (including secondary model-group alerts), and supports all five input modalities (`text`, `image`, `audio`, `video`, `pdf`). Follow-ups during an active turn queue for the next turn. Check models with `agy models`.
 
 ## pi (`pi:<provider>`)
 
@@ -42,10 +46,10 @@ npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 pi
 ```
 
-Inside `pi`, run `/login` to connect your provider (for example `pi:openai-codex` or `pi:deepseek`). A native `codex` login does not replace `pi`’s own login, and each `pi:<provider>` must be allowed separately. Verify without printing credentials:
+Inside `pi`, run `/login` to connect your provider (for example `pi:deepseek`, `pi:zai` for Zhipu GLM, or `pi:openai-codex`). A native `codex` login does not replace `pi`’s own login, and each `pi:<provider>` must be allowed separately. When passing `--model` explicitly for a `pi:<provider>` worker, include the provider prefix shown in `broco roster` (such as `zai/glm-5.3` or `deepseek/deepseek-flash`). Verify without printing credentials:
 
 ```sh
-pi auth check --provider openai-codex --no-refresh
+pi auth check --provider deepseek --no-refresh
 pi --list-models
 ```
 
@@ -54,8 +58,8 @@ Across macOS, Linux, and Windows, `pi` workers run directly with isolated sessio
 ## Choose per ticket
 
 ```sh
-broco say inspect-a "Audit error paths in src/auth.ts." --worker claude --bg --json
-broco say inspect-b "Audit error paths in src/auth.ts." --worker codex --bg --json
+broco say inspect-a "Audit error paths in src/auth.ts." --worker pi:zai --model zai/glm-5.3 --bg --json
+broco say inspect-b "Audit error paths in src/auth.ts." --worker claude --bg --json
 ```
 
 A session name stays bound to its worker; you can switch `--model` or `--effort` between completed turns. For Gemini CLI, OpenCode, or another program, configure a trial-tested [custom template](custom-cli.md).

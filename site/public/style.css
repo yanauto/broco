@@ -512,6 +512,18 @@ html[lang="zh-CN"] .hero-copy h1 {
   margin-inline: 4px;
 }
 
+.compat-note {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.compat-note:hover {
+  color: var(--brand-green-ink);
+}
+
 .compat-pill {
   padding: 3px 9px;
   border: 1px solid var(--line);

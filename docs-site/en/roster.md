@@ -14,13 +14,13 @@ broco say investigate "Explain the failing test." --worker codex --model MODEL_F
 
 ## Live quotas and operational signals
 
-- **`quota`**: Codex (`account/rateLimits/read`) and `agy` (`/usage`) report live 5-hour and weekly headroom, flagging `avoid` when tight, `plentiful` when wide open, and `tightGroups` for secondary `agy` model buckets. CLIs without a usage endpoint show `unreported` and rely on error-derived cooldown tracking (`recentProblem`).
+- **`quota`**: Codex (`account/rateLimits/read`) and `agy` (`/usage`; API key / Enterprise only — see the [agy warning](../workers/#agy)) report live 5-hour and weekly headroom, flagging `avoid` when tight, `plentiful` when wide open, and `tightGroups` for secondary `agy` model buckets. CLIs without a usage endpoint show `unreported` and rely on error-derived cooldown tracking (`recentProblem`).
 - **`record`**: Real per-task pass/rework/fail counts from `broco done`. Once a model has 3+ non-blocked tasks, your own record outranks catalog grades.
 - **`capabilities.input`**: Confirmed intersection of model capability and CLI transport (`text`, `image`, `audio`, `video`, `pdf`). Check for `true` before `--attach`.
 
 ## Compact and detailed views
 
-Each current model family takes one row: a real detected model ID, confirmed inputs, tier/grade, reported effort choices, and one sentence. Effort and fast variants share a row (`variantCount`, `fast`). For `agy`, multi-effort families fold under their base family ID and map `--effort` automatically.
+Each current model family takes one row: a real detected model ID, confirmed inputs, tier/grade, reported effort choices, and one sentence. Effort and fast variants share a row (`variantCount`, `fast`). For [`agy`](../workers/#agy) (API key / Enterprise only), multi-effort families fold under their base family ID and map `--effort` automatically.
 
 Models labeled `previous generation`, `superseded`, or `being retired` in the catalog fold into `olderModels`. Use `--full` (optionally with `--worker ID`) for exact variants, older models, token limits, and full catalog metadata. Hidden models stay hidden in both modes.
 

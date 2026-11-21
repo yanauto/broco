@@ -4,14 +4,14 @@
 
 ## L0：全局策略（免 `init`、仓库保持干净）
 
-运行 `broco setup` 时由你显式确认全局允许名单（例如 `claude,codex,agy,cursor-agent`）。每个 `pi:<厂商>` 都是独立权限，放行 `codex` 不会顺带放行 `pi:openai-codex`。
+运行 `broco setup` 时由你显式确认全局允许名单（例如 `claude,codex,pi:deepseek,pi:zai,cursor-agent`）。每个 `pi:<厂商>` 都是独立权限，放行 `codex` 不会顺带放行 `pi:openai-codex`。
 
 在未建立 `.broco/` 的任意目录里，命令直接沿用你的全局允许名单、默认工人与并发上限；工单记录按 `realpath(gitRoot || cwd)` 归档在 `~/.broco/`，不在代码仓库里留下隐藏目录或配置文件。
 
 随时可调整全局策略：
 
 ```sh
-broco allow claude,codex,agy --default-worker agy --global
+broco allow claude,codex,pi:deepseek,pi:zai --default-worker pi:zai --global
 broco deny cursor-agent --global
 broco set concurrency 4 --global
 ```

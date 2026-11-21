@@ -17,6 +17,6 @@ broco say auth-fix "Also cover an expired refresh token." --bg --json
 
 If the original turn already finished, the second `say` starts the next turn in the same session. If a previous turn failed before binding a native session (`sessionWarning`), use `broco retry auth-fix --bg --json` instead of bare `say` to resend the stored prompt and snapshotted attachments cleanly.
 
-For `claude`, `agy`, `cursor-agent`, and custom templates, follow-ups sent mid-turn always queue for the next turn. Changing `--model` or `--effort` while a turn is running is rejected; wait until the turn finishes.
+For `claude`, `cursor-agent`, custom templates, and `agy` (API key / Enterprise only; see [Workers and login (`#agy`)](../workers/#agy)), follow-ups sent mid-turn always queue for the next turn. Changing `--model` or `--effort` while a turn is running is rejected; wait until the turn finishes.
 
 When reopening a chat, use `broco ls --active --json`, `broco show auth-fix --compact --json`, and `broco wait auth-fix --json` to reattach cleanly.

@@ -19,7 +19,7 @@ broco done visual-check --result pass --why "布局检查完成。"
 | --- | --- |
 | `claude` print / stream-json | 经 `stdin` 传题，并通过 `--add-dir` 与 `Read` 工具支持 `text`、`image`、`pdf` 附件（拒绝 `audio` 与 `video`）。 |
 | Codex app-server | 以 `localImage` 块发送图片；当选中模型上报支持音频时启用 `localAudio`。回退至 `codex exec` 时改用重复 `--image`，并拒绝音频而非静默丢弃。 |
-| `agy` stdin / stream-json | 经 `stdin` 传题，支持选中模型具备的 `text`、`image`、`audio`、`video`、`pdf` 全部五类输入。 |
+| `agy` stdin / stream-json | 经 `stdin` 传题，支持选中模型具备的 `text`、`image`、`audio`、`video`、`pdf` 全部五类输入。仅建议配合 Gemini API Key 或 Enterprise / Google Cloud 项目使用（见[风险提示](../workers/#agy)）。 |
 | `pi` RPC | 通过 `images` 内容块（`type`、base64 `data`、`mimeType`）发送图片，直接使用 `input`、`contextWindow`、`maxTokens` 精确字段。 |
 | `cursor-agent` print | 无头打印适配器暂无直接媒体附件参数，媒体能力保持 `unknown`，显式附件会被拒绝。 |
 | `custom:<名称>` 模板 | 模板只声明文本参数或 `stdin`，媒体能力保持 `unknown`，显式附件会被拒绝。 |

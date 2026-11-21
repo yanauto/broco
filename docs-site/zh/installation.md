@@ -7,7 +7,7 @@
 - **系统平台**：macOS（`arm64` / `x64`）、Linux（`x64` / `arm64` glibc）或 Windows 11（`x64` / `arm64`）。
 - **Node.js**：使用一行安装脚本时，若本机缺失或低于 22.13.0 会自动自带独立 Node 运行时；改用 `npm` 直接安装则需要 **Node.js 22.13+**（内置 `node:sqlite` 所需）。
 - **Git**：独立 worktree 与自定义模板试跑均依赖 Git（Windows 11 需安装 Git for Windows）。
-- **本机编程 CLI**：至少两个你已在本机登录好的 AI CLI（例如 Claude Code、Codex、Antigravity `agy`、Cursor Agent、OpenCode 或 `pi`）。
+- **本机编程 CLI**：至少两个你已在本机登录好的 AI CLI（例如 Claude Code、Codex、Cursor Agent、OpenCode、`pi` 或 Antigravity `agy`——放行 `agy` 前请先阅读[风险提示](workers/#agy)）。
 
 ## 安装 CLI 与开放 Skill
 
@@ -77,7 +77,7 @@ macOS / Linux：
 
 ```sh
 curl -fsSL https://broco.yanauto.me/install.sh | BROCO_NO_SETUP=1 sh
-"$HOME/.local/bin/broco" setup --allow claude,codex,agy --yes --json
+"$HOME/.local/bin/broco" setup --allow claude,codex,pi:deepseek,pi:zai --yes --json
 ```
 
 Windows（PowerShell）：
@@ -85,7 +85,7 @@ Windows（PowerShell）：
 ```powershell
 $env:BROCO_NO_SETUP = '1'
 irm https://broco.yanauto.me/install.ps1 | iex
-& "$env:LOCALAPPDATA\broco\bin\broco.cmd" setup --allow claude,codex,agy --yes --json
+& "$env:LOCALAPPDATA\broco\bin\broco.cmd" setup --allow claude,codex,pi:deepseek,pi:zai --yes --json
 ```
 
 在 Unix 下直接调用 `"$HOME/.local/bin/broco"`（或 `BROCO_BIN_DIR`）、在 Windows 下直接调用 `"$env:LOCALAPPDATA\broco\bin\broco.cmd"`（或 `BROCO_INSTALL_DIR`），即使宿主进程尚未刷新 `PATH`，也能在连续多次工具调用中直接跑通。

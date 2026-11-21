@@ -1,19 +1,19 @@
 const dispatchScenes = {
   quota: {
     foreman: {
-      en: 'codex 89% -> hand off to agy',
-      zh: 'codex 89% -> 转交 agy 处理'
+      en: 'codex 89% -> hand off to pi:zai',
+      zh: 'codex 89% -> 转交 pi:zai 处理'
     },
-    cmd: '$ broco say auth-fix "Fix verifyToken expiry" --worker agy --worktree --bg',
+    cmd: '$ broco say auth-fix "Fix verifyToken expiry" --worker pi:zai --worktree --bg',
     lines: {
       en: [
         ['', '▸', 'from: claude -> global allowlist (~/.broco/)'],
-        ['is-warn', '▸', 'roster: codex 5h 89% (avoid) → selected agy (5h 4% plentiful)'],
+        ['is-warn', '▸', 'roster: codex 5h 89% (avoid) → selected pi:zai (0 err · ready)'],
         ['is-good', '✓', 'ticket #43 running in worktree broco/auth-fix · via stdin']
       ],
       zh: [
         ['', '▸', '来源：claude -> 全局白名单（~/.broco/）'],
-        ['is-warn', '▸', '查 roster：codex 5h 89%（avoid）→ 选用 agy（5h 4% plentiful）'],
+        ['is-warn', '▸', '查 roster：codex 5h 89%（avoid）→ 选用 pi:zai（0 err · ready）'],
         ['is-good', '✓', '任务 #43 已在独立 worktree broco/auth-fix 运行 · stdin 传题']
       ]
     }
@@ -26,12 +26,12 @@ const dispatchScenes = {
     cmd: '$ broco review auth-fix --bg --json',
     lines: {
       en: [
-        ['', '▸', 'author: agy (gemini) → auto-pick other vendor: claude'],
+        ['', '▸', 'author: pi:zai (zhipu) → auto-pick other vendor: claude'],
         ['is-warn', '▸', 'scope: git diff main..broco/auth-fix (+44 -9 · 2 files)'],
         ['is-good', '✓', 'review #44 PASS · clean diff · ready for broco clean']
       ],
       zh: [
-        ['', '▸', '原作者 agy → 省略 --by 自动换另一家模型 claude 盲审'],
+        ['', '▸', '原作者 pi:zai（智谱）→ 省略 --by 自动换另一家模型 claude 盲审'],
         ['is-warn', '▸', '审查范围：git diff main..broco/auth-fix（+44 -9 · 2 个文件）'],
         ['is-good', '✓', '审查 #44 PASS · 改动干净 · 可直接 broco clean']
       ]
@@ -119,7 +119,7 @@ const setupModes = {
     zh: 'broco setup 写入 ~/.broco/、~/.agents/skills/broco/ 以及本机已检测到的宿主 skills 目录（Claude Code、Codex、Antigravity、Cursor、OpenCode、Pi），项目仓库保持原样。'
   },
   l1: {
-    code: 'broco setup\nbroco init --allow claude,codex,agy,pi:deepseek --default-worker agy --concurrency 4',
+    code: 'broco setup\nbroco init --allow claude,codex,pi:deepseek,pi:zai --default-worker pi:zai --concurrency 4',
     en: 'Optional per-repo mode: adds .broco/ and a marked AGENTS.md section when a repo needs its own allowlist or concurrency cap.',
     zh: '可选项目级模式：写入 .broco/ 并维护 AGENTS.md 标记段，适合需要单独锁定可用 harness 与并发上限的仓库。'
   },
@@ -242,7 +242,8 @@ function renderLanguage() {
   languageBtn.textContent = zh ? 'EN' : '中文'
   languageBtn.setAttribute('aria-label', zh ? 'Switch to English' : '切换到中文')
   for (const link of document.querySelectorAll('[data-route]')) {
-    link.href = (zh ? 'zh/' : '') + link.dataset.route + '/'
+    const [routePath, hash] = link.dataset.route.split('#')
+    link.href = (zh ? 'zh/' : '') + routePath + '/' + (hash ? '#' + hash : '')
   }
   byId('notice').textContent = ''
   syncThemeButton()

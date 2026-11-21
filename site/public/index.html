@@ -33,7 +33,7 @@
         <img class="mascot-px" src="assets/broco-foreman-256.png" width="28" height="28" alt="">
         <span>broco</span>
       </a>
-      <a class="ver-pill" href="changelog/" data-route="changelog">v1.2.0</a>
+      <a class="ver-pill" href="changelog/" data-route="changelog">v1.2.1</a>
     </div>
     <nav class="top-nav" aria-label="Main">
       <a href="#under-the-hood" data-zh="原理">How it works</a>
@@ -99,7 +99,7 @@
         <div class="console-telemetry">
           <div class="foreman-callout">
             <span class="callout-mark" aria-hidden="true">▸</span>
-            <code id="foreman-note">codex 89% -&gt; hand off to agy</code>
+            <code id="foreman-note">codex 89% -&gt; hand off to pi:zai</code>
           </div>
           <div class="quota-list" role="list" aria-label="Harness quotas" data-zh-aria="各 harness 实时额度">
             <div class="quota-row" role="listitem">
@@ -109,10 +109,10 @@
               <span class="q-tag is-danger">avoid</span>
             </div>
             <div class="quota-row" role="listitem">
-              <span class="q-name">agy</span>
+              <span class="q-name">pi:zai</span>
               <span class="broco-meter is-good" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-              <span class="q-stat tnum">5h 4%</span>
-              <span class="q-tag is-good">plentiful</span>
+              <span class="q-stat tnum">0 err</span>
+              <span class="q-tag is-good">ready</span>
             </div>
             <div class="quota-row" role="listitem">
               <span class="q-name">claude</span>
@@ -133,7 +133,7 @@
           <div class="foreman-frame">
             <img class="mascot-px foreman-img" src="assets/broco-foreman-256.png" width="116" height="116" alt="broco 16-bit pixel broccoli mascot wearing a yellow hard hat">
           </div>
-          <span class="foreman-badge">BROCO · v1.2</span>
+          <span class="foreman-badge">BROCO · v1.2.1</span>
         </div>
       </div>
 
@@ -154,10 +154,10 @@
         </div>
 
         <div class="dispatch-stage" id="panel-dispatch" role="tabpanel" aria-labelledby="tab-quota">
-          <div class="stage-cmd" id="scene-cmd">$ broco say auth-fix "Fix verifyToken expiry" --worker agy --worktree --bg</div>
+          <div class="stage-cmd" id="scene-cmd">$ broco say auth-fix "Fix verifyToken expiry" --worker pi:zai --worktree --bg</div>
           <div class="stage-lines" id="scene-lines">
             <div class="stage-line"><span class="sl-mark">▸</span><span>from: claude -&gt; global allowlist (~/.broco/)</span></div>
-            <div class="stage-line"><span class="sl-mark is-warn">▸</span><span>roster: codex 5h 89% (avoid) → selected agy (5h 4% plentiful)</span></div>
+            <div class="stage-line"><span class="sl-mark is-warn">▸</span><span>roster: codex 5h 89% (avoid) → selected pi:zai (0 err · ready)</span></div>
             <div class="stage-line"><span class="sl-mark is-good">✓</span><span>ticket #43 running in worktree broco/auth-fix · via stdin</span></div>
           </div>
         </div>
@@ -169,7 +169,7 @@
     <div class="wrap compat-inner">
       <div class="compat-hosts">
         <span class="compat-label" data-zh="互通 Harness：">Works across:</span>
-        <span class="compat-list">Claude Code <i aria-hidden="true">·</i> Codex <i aria-hidden="true">·</i> Cursor <i aria-hidden="true">·</i> Antigravity <i aria-hidden="true">·</i> OpenCode <i aria-hidden="true">·</i> Pi</span>
+        <span class="compat-list">Claude Code <i aria-hidden="true">·</i> Codex <i aria-hidden="true">·</i> Cursor <i aria-hidden="true">·</i> Pi <i aria-hidden="true">·</i> OpenCode <i aria-hidden="true">·</i> Antigravity <a class="compat-note" href="docs/workers/#agy" data-route="docs/workers#agy" data-zh="（API/企业版）">(API/Enterprise)</a></span>
       </div>
       <span class="compat-pill" data-zh="一份开放 SKILL.md · 直连本机官方 CLI">One open SKILL.md · local official CLIs</span>
     </div>
@@ -218,8 +218,8 @@
               <rect x="14" y="42" width="144" height="130" rx="4" class="svg-box"/>
               <text x="26" y="64" class="svg-kicker">HOST AGENT</text>
               <text x="26" y="87" class="svg-title">Claude · Codex</text>
-              <text x="26" y="106" class="svg-title">Cursor · Agy</text>
-              <text x="26" y="125" class="svg-title">OpenCode · Pi</text>
+              <text x="26" y="106" class="svg-title">Cursor · OpenCode</text>
+              <text x="26" y="125" class="svg-title">Pi · Antigravity</text>
               <text x="26" y="154" class="svg-muted">reads SKILL.md</text>
 
               <line x1="158" y1="107" x2="236" y2="107" class="svg-wire-accent"/>
@@ -248,11 +248,11 @@
               <text x="504" y="59" class="svg-muted">stream-json · local</text>
 
               <rect x="492" y="81" width="154" height="52" rx="4" class="svg-box-active"/>
-              <text x="504" y="103" class="svg-title">agy</text>
-              <text x="504" y="120" class="svg-muted">multimodal · 5h 4%</text>
+              <text x="504" y="103" class="svg-title">pi:zai / deepseek</text>
+              <text x="504" y="120" class="svg-muted">pi RPC · ready</text>
 
               <rect x="492" y="142" width="154" height="52" rx="4" class="svg-box"/>
-              <text x="504" y="164" class="svg-title">codex / cursor / pi</text>
+              <text x="504" y="164" class="svg-title">codex / cursor</text>
               <text x="504" y="181" class="svg-muted">official local CLIs</text>
 
               <text x="333" y="214" text-anchor="middle" class="svg-muted">Official local CLIs · Your existing logins · State kept in ~/.broco/</text>
@@ -282,11 +282,11 @@
  2 files changed, 44 insertions(+), 9 deletions(-)</pre>
           </div>
           <div class="term-proof">
-            <div class="tp-cmd">$ broco review auth-fix --bg &amp;&amp; broco wait auth-fix-review</div>
+            <div class="tp-cmd">$ broco review auth-fix</div>
             <div class="review-verdict">
               <div class="rv-head">
                 <span class="rv-badge">PASS</span>
-                <span class="rv-meta tnum">reviewer: <b>claude</b> (auto-selected ≠ agy) · 18.4s</span>
+                <span class="rv-meta tnum">reviewer: <b>claude</b> (auto-selected ≠ pi:zai) · 18.4s</span>
               </div>
               <p class="rv-body" data-zh="已独立核对 main..broco/auth-fix 的全部改动：过期边界含 30s 时钟偏差容错，负值 exp 正常拒绝，测试通过。可直接合并并运行 broco clean auth-fix --delete-branch 收尾。">Verified main..broco/auth-fix: 30s clock-skew tolerance covered, negative exp rejected, tests pass. Ready to merge and run broco clean auth-fix --delete-branch.</p>
             </div>
@@ -303,7 +303,7 @@
             </div>
             <div class="ui-tb-telemetry tnum">
               <span class="ui-chip"><b>codex</b> <span class="broco-meter is-sm is-danger" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span> 89%</span>
-              <span class="ui-chip"><b>agy</b> <span class="broco-meter is-sm is-good" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span> 4%</span>
+              <span class="ui-chip"><b>pi:zai</b> <span class="broco-meter is-sm is-good" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span> ready</span>
               <span class="ui-chip"><b>claude</b> <span class="broco-meter is-sm is-neutral" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span> ready</span>
             </div>
           </div>
@@ -325,7 +325,7 @@
                   <span class="ui-err-pill tnum">exit 143 · OOM</span>
                 </div>
                 <strong class="ui-card-title" data-zh="解析大体积支付回调">Parse large webhook payload</strong>
-                <div class="ui-card-foot tnum"><span>⎇ webhook-stream</span><span>pi:deepseek</span></div>
+                <div class="ui-card-foot tnum"><span>⎇ webhook-stream</span><span>deepseek/flash</span></div>
               </div>
               <div class="ui-linked-group">
                 <div class="ui-card is-linked">
@@ -334,7 +334,7 @@
                     <span class="ui-rev-pill" data-zh="有盲审">reviewed</span>
                   </div>
                   <strong class="ui-card-title" data-zh="修复 verifyToken 过期校验">Fix verifyToken expiry</strong>
-                  <div class="ui-card-foot tnum"><span>⎇ auth-fix · +2f</span><span>agy/pro</span></div>
+                  <div class="ui-card-foot tnum"><span>⎇ auth-fix · +2f</span><span>zai/glm-5.3</span></div>
                 </div>
                 <div class="ui-link-wire" aria-hidden="true"><span>↳ linked review</span></div>
                 <div class="ui-card is-linked is-review-child">
@@ -355,11 +355,11 @@
               </div>
               <div class="ui-done-card">
                 <div class="ui-done-row1"><strong data-zh="加固限流存储分片">Harden rate-limit shard</strong><span class="ui-done-check" aria-hidden="true">✓</span></div>
-                <div class="ui-done-row2 tnum">⎇ rate-limit · +1f · 100% · agy/pro · 1h</div>
+                <div class="ui-done-row2 tnum">⎇ rate-limit · +1f · 99.1% · codex/gpt-6.1-sol · 1h</div>
               </div>
               <div class="ui-done-card">
                 <div class="ui-done-row1"><strong data-zh="审计日志流式导出">Stream audit log export</strong><span class="ui-done-check" aria-hidden="true">✓</span></div>
-                <div class="ui-done-row2 tnum">⎇ audit-log · +3f · 98.1% · pi:deepseek · 2h</div>
+                <div class="ui-done-row2 tnum">⎇ audit-log · +3f · 98.1% · deepseek/flash · 2h</div>
               </div>
             </div>
           </div>
@@ -480,7 +480,7 @@
   <div class="foot-left">
     <img class="mascot-px" src="assets/broco-foreman-256.png" width="22" height="22" alt="">
     <span class="foot-brand">broco</span>
-    <span class="foot-meta tnum">v1.2.0 · Apache-2.0</span>
+    <span class="foot-meta tnum">v1.2.1 · Apache-2.0</span>
   </div>
   <div class="foot-links">
     <a href="docs/" data-route="docs" data-zh="文档">Docs</a>

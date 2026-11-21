@@ -20,7 +20,11 @@ Login and permission are separate boundaries. Confirming your allowlist during `
 
 ## How does quota reading work?
 
-Quota reading is best-effort per CLI: `codex` (`account/rateLimits/read`) and `agy` (`/usage`) report live 5-hour and weekly usage windows (`avoid`, `plentiful`, and `agy` secondary model-group alerts). CLIs without a usage endpoint show `unreported` and fall back to error-derived cooldown tracking (`recentProblem`).
+Quota reading is best-effort per CLI: `codex` (`account/rateLimits/read`) and `agy` (`/usage`, API key / Enterprise only — [warning](../workers/#agy)) report live 5-hour and weekly usage windows (`avoid`, `plentiful`, and `agy` secondary model-group alerts). CLIs without a usage endpoint show `unreported` and fall back to error-derived cooldown tracking (`recentProblem`).
+
+## Is Antigravity (`agy`) safe to use with consumer Google plans?
+
+No. Google's consumer plans (Free, AI Plus, Pro, Ultra) prohibit third-party agents from driving the Antigravity CLI, and accounts have been suspended. `broco` keeps `agy` supported without blocking it, so you can use it at your own risk — only with a Gemini API key or a Gemini Enterprise / Google Cloud project. See [Workers and login (`#agy`)](../workers/#agy).
 
 ## How are timestamps formatted?
 
@@ -36,7 +40,7 @@ A `--worktree` starts from committed `HEAD`. Check the writer’s branch with `b
 
 ## What platforms and setups does broco support?
 
-`broco` runs natively on macOS, Linux, and Windows 11 (PowerShell, Windows Terminal, and `cmd`, plus WSL2 via the Linux backend) with Git, and works best when you have two or more signed-in coding harnesses on the same machine (Claude Code, Codex, Cursor, Antigravity, OpenCode, or Pi). The one-line installer brings its own Node 24 LTS runtime when needed (no admin rights required), and direct `npm` installs support Node.js 22.13+. On native Windows, the runner uses Named Pipes (`\\.\pipe\broco-*`), resolves `.exe` and npm `.cmd` CLIs directly, writes a `broco.cmd` skill launcher, and links Pi skills via admin-free NTFS junctions. For quick single-file edits inside the same model family, your current host’s built-in subagent is usually fastest.
+`broco` runs natively on macOS, Linux, and Windows 11 (PowerShell, Windows Terminal, and `cmd`, plus WSL2 via the Linux backend) with Git, and works best when you have two or more signed-in coding harnesses on the same machine (Claude Code, Codex, Cursor, Pi, OpenCode, or Antigravity with API/Enterprise — see [`#agy`](../workers/#agy)). The one-line installer brings its own Node 24 LTS runtime when needed (no admin rights required), and direct `npm` installs support Node.js 22.13+. On native Windows, the runner uses Named Pipes (`\\.\pipe\broco-*`), resolves `.exe` and npm `.cmd` CLIs directly, writes a `broco.cmd` skill launcher, and links Pi skills via admin-free NTFS junctions. For quick single-file edits inside the same model family, your current host’s built-in subagent is usually fastest.
 
 ## Does the one-line installer alter my existing Node or npm?
 

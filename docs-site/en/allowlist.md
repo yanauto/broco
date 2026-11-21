@@ -4,14 +4,14 @@
 
 ## L0: Global policy (no `init`, clean repo)
 
-During `broco setup`, you confirm the exact global allowlist once (for example `claude,codex,agy,cursor-agent`). Every `pi:<provider>` requires its own explicit ID — allowing `codex` does not grant `pi:openai-codex`.
+During `broco setup`, you confirm the exact global allowlist once (for example `claude,codex,pi:deepseek,pi:zai,cursor-agent`). Every `pi:<provider>` requires its own explicit ID — allowing `codex` does not grant `pi:openai-codex`.
 
 In any directory without `.broco/`, commands use your global allowlist, global default worker, and global concurrency cap automatically. Ticket state is stored under `~/.broco/` keyed by `realpath(gitRoot || cwd)` so repositories stay completely clean.
 
 Adjust global policy anytime without touching repos:
 
 ```sh
-broco allow claude,codex,agy --default-worker agy --global
+broco allow claude,codex,pi:deepseek,pi:zai --default-worker pi:zai --global
 broco deny cursor-agent --global
 broco set concurrency 4 --global
 ```

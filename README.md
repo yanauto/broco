@@ -10,7 +10,7 @@
   Formerly <code>opus-manager</code> (v0.4) · Apache-2.0 · <a href="README.zh-CN.md">中文</a> · <a href="https://broco.yanauto.me/">Website</a> · <a href="https://broco.yanauto.me/docs/">Docs</a> · <a href="CHANGELOG.md">Changelog</a>
 </p>
 
-**Let your harnesses work together.** Stay in whichever coding agent you already have open, and delegate to the rest on your machine — Claude Code, Codex, Cursor, Antigravity, OpenCode, and Pi. Run parallel git worktrees, ask another model family for a cold diff review, and route around 5-hour quota limits using your existing logins.
+**Let your harnesses work together.** Stay in whichever coding agent you already have open, and delegate to the rest on your machine — Claude Code, Codex, Cursor, Pi, OpenCode, and [Antigravity](https://broco.yanauto.me/docs/workers/#agy) (API/Enterprise). Run parallel git worktrees, ask another model family for a cold diff review, and route around 5-hour quota limits using your existing logins.
 
 ## Get started
 
@@ -74,7 +74,7 @@ Removes the install root, shim, and Windows User `Path` entry while keeping `~/.
 3. Prints a live quota-aware roster immediately.
 4. Installs one open `SKILL.md` into `~/.agents/skills/broco/` and links or syncs it into your detected local hosts (**Claude Code**, **Codex**, **Cursor**, **Antigravity**, **OpenCode**, and **Pi** — linking `~/.pi/agent/skills/broco` and respecting `PI_CODING_AGENT_DIR`).
 
-**Native Windows 11 support:** Runs directly in PowerShell, Windows Terminal, or `cmd` (WSL2 also works via the Linux backend) using Windows Named Pipes (`\\.\pipe\broco-*`), direct `.exe` and npm `.cmd` CLI resolution without shell quoting issues, a pinned `~/.agents/skills/broco/broco.cmd` launcher, and NTFS junctions for Pi skills (no administrator privileges required). See [Windows 11 notes & troubleshooting](docs-site/en/installation.md#windows-11-notes).
+**Native Windows 11 support:** Runs directly in PowerShell, Windows Terminal, or `cmd` (WSL2 also works via the Linux backend) using Windows Named Pipes (`\\.\pipe\broco-*`), direct `.exe` and npm `.cmd` CLI resolution without shell quoting issues, a pinned `~/.agents/skills/broco/broco.cmd` launcher, and NTFS junctions for Pi skills (no administrator privileges required). See [Windows 11 notes & troubleshooting](https://broco.yanauto.me/docs/#windows-11-notes).
 
 Then go straight back to your current harness and ask in plain language:
 
@@ -90,7 +90,7 @@ Any host harness can delegate to any allowed worker — including calling `claud
 | --- | --- | --- |
 | `claude` | Native `claude -p --output-format stream-json` + `--resume` via stdin (`text`, `image`, `pdf` via `--add-dir` + `Read`; rejects `audio`/`video`) | Queues for the next turn |
 | `codex` | Native Codex app-server + live 5h/weekly quota (`text`, `image`, reported `audio`) | Injects when the turn accepts steering; otherwise queues |
-| `agy` | Native Antigravity CLI via stdin + `/usage` multi-group quotas (`text`, `image`, `audio`, `video`, `pdf`) | Queues for the next turn |
+| `agy` | Native Antigravity CLI via stdin + `/usage` multi-group quotas (`text`, `image`, `audio`, `video`, `pdf`). **Warning:** Google consumer plans (Free, AI Plus, Pro, Ultra) prohibit third-party agents from driving `agy` and accounts have been suspended; use only with a Gemini API key or Gemini Enterprise / Google Cloud project, at your own risk ([details](https://broco.yanauto.me/docs/workers/#agy)). | Queues for the next turn |
 | `cursor-agent` | Native Cursor CLI with structured events and session ID resume | Queues for the next turn |
 | `pi:<provider>` | pi RPC with explicit per-provider permission (`text`, `image`) | Injects when pi confirms delivery; otherwise queues |
 | `custom:<name>` | Trial-tested new-session and resume command templates | Queues; native step events and cache are unavailable |
@@ -120,12 +120,12 @@ broco roster --json
 broco roster --worker codex --json --full
 ```
 
-`status` checks runner health, active/queued tickets, batches, proxies, and cleanable worktrees without starting an offline daemon. `roster` reads permitted model families, login state, input capabilities, user notes, rules, and live quotas (`avoid`, `plentiful`, and secondary `agy` model-group alerts) over a shared 45s cache (`--refresh` forces a re-probe; `--global` inspects global defaults explicitly).
+`status` checks runner health, active/queued tickets, batches, proxies, and cleanable worktrees without starting an offline daemon. `roster` reads permitted model families, login state, input capabilities, user notes, rules, and live quotas (`avoid` and `plentiful`) over a shared 45s cache (`--refresh` forces a re-probe; `--global` inspects global defaults explicitly).
 
 ### Dispatch, wait, diff, cross-vendor review, and clean
 
 ```sh
-broco say auth-fix - --worker agy --worktree --bg --json <<'EOF'
+broco say auth-fix - --worker pi:zai --worktree --bg --json <<'EOF'
 Fix the failing `verifyToken()` expiry test and cover `$REFRESH_TOKEN` edge cases.
 EOF
 broco wait auth-fix --json
@@ -139,7 +139,7 @@ broco clean auth-fix --delete-branch
 - **`say`** accepts inline text, `--file <path>`, or `stdin` (`-` or piped input; on Windows PowerShell or `cmd`, pass `--file <path>` or pipe `@' ... '@` instead of `<<'EOF'`) so multi-line markdown and backticks need no shell escaping. Reuse a name to continue its session; pick a new name to run in parallel. Use `--cwd DIR` to run in another directory while keeping permissions and tickets in the current project, `--attach FILE` for confirmed media, `--new-task` after `done`, and `--from OLD_NAME` to hand off cleanly when `contextWarning` fires at 60% of a model's context window.
 - **`wait`** is event-driven (0ms wakeup, no SQLite polling) and returns `reply`, `task`, `cwd`, `worktree`, `branch`, and `changedFiles`.
 - **`diff`** inspects tracked and untracked changes against the ticket's base commit.
-- **`review`** defaults to cross-vendor blind review: omitting `--by` automatically selects a permitted worker from a different vendor with available quota headroom (or pass `--by claude`, `--by codex`, etc. explicitly).
+- **`review`** defaults to cross-vendor blind review: omitting `--by` automatically selects a permitted worker from a different vendor with available quota headroom — for example reviewing a `codex` patch with `claude`, or a `pi:zai` patch with `claude` (or pass `--by claude`, `--by codex`, etc. explicitly).
 - **`done` & `clean`** record outcomes (`pass`, `rework`, `fail`, `blocked`) and remove retained worktrees and branches safely (`--dry-run` previews first).
 
 ### Sharded batch fan-out with `map`
@@ -147,7 +147,7 @@ broco clean auth-fix --delete-branch
 Apply one brief across many files or inputs (`<prefix>-1 .. <prefix>-N`) regulated by an isolated FIFO concurrency pool:
 
 ```sh
-broco map x-tag --brief-file brief.md --inputs shard-*.jsonl --worker agy --effort high --bg --json
+broco map x-tag --brief-file brief.md --inputs shard-*.jsonl --worker pi:deepseek --effort high --bg --json
 broco wait x-tag --json
 broco retry x-tag --bg --json
 broco show x-tag --status error,review --full --json
@@ -162,7 +162,7 @@ broco clean x-tag --delete-branch
 Only needed when a repository requires its own strict allowlist (for example blocking a specific vendor in a private repo), an independent concurrency cap, repo-specific rules, or explicit heavy manager mode:
 
 ```sh
-broco init --allow claude,codex,agy,pi:deepseek --default-worker agy --concurrency 4
+broco init --allow claude,codex,pi:deepseek,pi:zai --default-worker pi:zai --concurrency 4
 broco init --manager-mode
 broco uninit
 ```
@@ -177,11 +177,11 @@ Your agent can adjust global or per-project settings directly via CLI. Every cha
 
 ```sh
 broco set concurrency 6
-broco set default-worker agy
-broco allow claude,codex,agy --default-worker agy
+broco set default-worker pi:zai
+broco allow claude,codex,pi:deepseek,pi:zai --default-worker pi:zai
 broco deny cursor-agent
-broco defaults agy --model gemini-4-argon --effort high
-broco note agy "High headroom plan; good for batch map jobs"
+broco defaults pi:zai --model zai/glm-5.3 --effort high
+broco note pi:deepseek "Fast and inexpensive; good for batch map jobs"
 broco rules --add "Run tests before finishing"
 broco hide codex gpt-5.6-sol
 broco audit --limit 10
@@ -222,7 +222,7 @@ Aggregates real per-task pass/rework/fail/blocked outcomes grouped by worker and
 2. Run `broco shutdown` (cleanly stops legacy runners across older protocols and `~/.cc-bro` sockets) followed by `broco setup --migrate-cc-bro` (or `broco setup` for a fresh start).
 3. `broco setup --migrate-cc-bro` losslessly copies existing `~/.cc-bro/` state into `~/.broco/` while preserving your projects, settings, and ticket history without deleting `~/.cc-bro/`.
 
-See the [upgrade guide](docs-site/en/upgrade.md) for details.
+See the [upgrade guide](https://broco.yanauto.me/docs/upgrade/) for details.
 
 ## Development
 

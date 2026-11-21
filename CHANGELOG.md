@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.2.1
+
+### English
+
+Released 2026-11-21 — Non-blocking Antigravity (`agy`) plan warning plus Pi-first documentation and live console examples.
+
+- **Non-blocking Antigravity (`agy`) plan warning**:
+  - Added a clear warning across `broco setup`, `broco roster`, and the first `agy` dispatch in a session (linking to [Workers and login (`#agy`)](https://broco.yanauto.me/docs/workers/#agy)): Google's consumer plans (Free, AI Plus, Pro, Ultra) prohibit third-party agents from driving the Antigravity CLI and accounts have been suspended; `broco` keeps `agy` supported without blocking it, for use only with a Gemini API key or a Gemini Enterprise / Google Cloud project at your own risk.
+  - Updated `skills/broco/SKILL.md` so host agents relay this warning before allowing or selecting `agy` and prefer other workers unless explicitly chosen.
+- **Pi-first demos and documentation**:
+  - Replaced `agy` examples across the README, landing page, Live Console, and documentation with `pi` workers (`pi:deepseek` and `pi:zai`) and Claude Code ⇄ Codex cross-vendor review examples, while keeping `agy` documented in worker tables with the warning and a dedicated `#agy` section.
+
+### 简体中文
+
+2026-11-21 发布 —— 新增 Antigravity（`agy`）非拦截风险提示，并将文档与官网示例全面切换为 `pi` 工人与 Claude Code ⇄ Codex 协作示例。
+
+- **Antigravity（`agy`）非拦截风险提示**：
+  - 在 `broco setup`、`broco roster` 与单次会话首次派单给 `agy` 时输出清晰提示并附[工人文档（`#agy`）](https://broco.yanauto.me/zh/docs/workers/#agy)：Google 消费者订阅（Free、AI Plus、Pro、Ultra）禁止由第三方 Agent 驱动 Antigravity CLI，已有封号先例；`broco` 保留支持且不强制拦截，仅建议配合 Gemini API Key 或 Gemini Enterprise / Google Cloud 项目自担风险使用。
+  - 更新 `skills/broco/SKILL.md`，要求宿主 Agent 在放行或选用 `agy` 前先向用户转达该提示，未明确指定时优先选用其他工人。
+- **Pi 与跨模型示例更新**：
+  - 将 README、官网首页、实时协作台与使用文档中的 `agy` 示例统一替换为 `pi` 工人（`pi:deepseek` 与 `pi:zai`）及 Claude Code ⇄ Codex 跨模型盲审示例，同时在工人兼容列表中保留 `agy` 并附上风险说明与独立 `#agy` 章节。
+
 ## 1.2.0
 
 ### English
