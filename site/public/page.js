@@ -91,19 +91,40 @@ const hoodMeta = {
   }
 }
 
+const heroInstalls = {
+  unix: {
+    prompt: '$',
+    cmd: 'curl -fsSL https://broco.yanauto.me/install.sh | sh',
+    en: 'Brings its own Node runtime when needed, installs into its own folder, needs no admin rights, and leaves existing Node/npm untouched.',
+    zh: '按需自带 Node 运行时，装入独立目录，免管理员权限，保持本机原有 Node 与 npm 原样。'
+  },
+  win: {
+    prompt: 'PS>',
+    cmd: 'irm https://broco.yanauto.me/install.ps1 | iex',
+    en: 'Brings its own Node runtime when needed, installs into its own folder, needs no admin rights, and leaves existing Node/npm untouched.',
+    zh: '按需自带 Node 运行时，装入独立目录，免管理员权限，保持本机原有 Node 与 npm 原样。'
+  },
+  npm: {
+    prompt: '$',
+    cmd: 'npm install -g @yanauto/broco',
+    en: 'Uses your existing Node.js 22.13+ and global npm prefix; run broco setup next.',
+    zh: '复用本机已有的 Node.js 22.13+ 与全局 npm 前缀；装完接着运行 broco setup。'
+  }
+}
+
 const setupModes = {
   l0: {
-    code: 'npm install -g @yanauto/broco\nbroco setup',
-    en: 'Writes to ~/.broco/, ~/.agents/skills/broco/, and detected local harness skill folders (Claude Code, Codex, Antigravity, Cursor, OpenCode, Pi). Your repo stays untouched.',
-    zh: '仅写入 ~/.broco/、~/.agents/skills/broco/ 以及本机已检测到的宿主 skills 目录（Claude Code、Codex、Antigravity、Cursor、OpenCode、Pi），项目仓库保持原样。'
+    code: 'broco setup',
+    en: 'broco setup writes to ~/.broco/, ~/.agents/skills/broco/, and detected local harness skill folders (Claude Code, Codex, Antigravity, Cursor, OpenCode, Pi). Your repo stays untouched.',
+    zh: 'broco setup 写入 ~/.broco/、~/.agents/skills/broco/ 以及本机已检测到的宿主 skills 目录（Claude Code、Codex、Antigravity、Cursor、OpenCode、Pi），项目仓库保持原样。'
   },
   l1: {
-    code: 'npm install -g @yanauto/broco\nbroco setup\nbroco init --allow claude,codex,agy,pi:deepseek --default-worker agy --concurrency 4',
+    code: 'broco setup\nbroco init --allow claude,codex,agy,pi:deepseek --default-worker agy --concurrency 4',
     en: 'Optional per-repo mode: adds .broco/ and a marked AGENTS.md section when a repo needs its own allowlist or concurrency cap.',
     zh: '可选项目级模式：写入 .broco/ 并维护 AGENTS.md 标记段，适合需要单独锁定可用 harness 与并发上限的仓库。'
   },
   migrate: {
-    code: 'npm install -g @yanauto/broco\nbroco shutdown\nbroco setup --migrate-cc-bro',
+    code: 'broco shutdown\nbroco setup --migrate-cc-bro',
     en: 'Stops running cc-bro background workers cleanly and moves ~/.cc-bro/ projects and ticket history into ~/.broco/.',
     zh: '平滑停止旧 cc-bro 后台进程，并将 ~/.cc-bro/ 下的项目配置与历史工单迁入 ~/.broco/。'
   }
@@ -112,6 +133,7 @@ const setupModes = {
 const byId = id => document.getElementById(id)
 const themeBtn = byId('theme-toggle')
 const languageBtn = byId('language')
+const osTabs = Array.from(document.querySelectorAll('[data-os]'))
 const sceneTabs = Array.from(document.querySelectorAll('[data-scene]'))
 const hoodTabs = Array.from(document.querySelectorAll('[data-hood]'))
 const modeTabs = Array.from(document.querySelectorAll('[data-mode]'))
@@ -119,6 +141,7 @@ const translations = Array.from(document.querySelectorAll('[data-zh]'), el => [e
 const ariaLabels = Array.from(document.querySelectorAll('[data-zh-aria]'), el => [el, el.getAttribute('aria-label')])
 
 let language = 'en'
+let activeOs = typeof navigator === 'object' && /Windows/i.test(navigator.userAgent || '') ? 'win' : 'unix'
 let activeScene = 'quota'
 let activeHood = 'isolation'
 let activeMode = 'l0'
@@ -182,6 +205,21 @@ function renderHood() {
   }
 }
 
+function renderOs() {
+  const entry = heroInstalls[activeOs]
+  byId('hero-prompt').textContent = entry.prompt
+  byId('hero-command').textContent = entry.cmd
+  byId('hero-install-note').textContent = entry[language]
+  for (const tab of osTabs) {
+    const selected = tab.dataset.os === activeOs
+    tab.setAttribute('aria-selected', String(selected))
+  }
+  for (const key of ['unix', 'win', 'npm']) {
+    const panel = byId('install-panel-' + key)
+    if (panel) panel.hidden = key !== activeOs
+  }
+}
+
 function renderMode() {
   const entry = setupModes[activeMode]
   byId('setup-commands').textContent = entry.code
@@ -208,6 +246,7 @@ function renderLanguage() {
   }
   byId('notice').textContent = ''
   syncThemeButton()
+  renderOs()
   renderScene()
   renderHood()
   renderMode()
@@ -280,6 +319,16 @@ for (const tab of hoodTabs) {
   })
 }
 
+for (const tab of osTabs) {
+  tab.addEventListener('click', () => {
+    activeOs = tab.dataset.os
+    renderOs()
+    const heroCopy = byId('hero-copy')
+    heroCopy.removeAttribute('data-copied')
+    heroCopy.textContent = language === 'zh' ? '复制' : 'Copy'
+  })
+}
+
 for (const tab of modeTabs) {
   tab.addEventListener('click', () => {
     activeMode = tab.dataset.mode
@@ -291,5 +340,8 @@ for (const tab of modeTabs) {
 }
 
 wireCopyButton('hero-copy', 'hero-command', 'Copy', '复制')
+wireCopyButton('copy-install-unix', 'install-cmd-unix', 'Copy', '复制')
+wireCopyButton('copy-install-win', 'install-cmd-win', 'Copy', '复制')
+wireCopyButton('copy-install-npm', 'install-cmd-npm', 'Copy', '复制')
 wireCopyButton('setup-copy', 'setup-commands', 'Copy', '复制命令')
 renderLanguage()

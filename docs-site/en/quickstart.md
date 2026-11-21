@@ -1,6 +1,6 @@
 # Your first ticket
 
-Start in any repository right after `broco setup` — no `broco init` needed. Try a read-only check first, or isolate a real edit in a git worktree and get a cross-vendor review.
+Start in any repository right after [installing `broco`](installation.md) and running `broco setup` — no `broco init` needed. Try a read-only check first, or isolate a real edit in a git worktree and get a cross-vendor review.
 
 ## 1. Dispatch from your existing host chat (recommended)
 

@@ -1,6 +1,6 @@
 # Global and repo policy
 
-`broco` starts with a zero-config global allowlist confirmed during `broco setup` (L0). Add a per-repository policy with `broco init` (L1) only when a specific repo needs stricter boundaries, its own concurrency pool, or heavy manager mode.
+`broco` starts with a global allowlist confirmed once during `broco setup` (L0) — no per-repo `init` needed. Add a per-repository policy with `broco init` (L1) only when a specific repo needs stricter boundaries, its own concurrency pool, or heavy manager mode.
 
 ## L0: Global policy (no `init`, clean repo)
 

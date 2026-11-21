@@ -36,4 +36,12 @@ A `--worktree` starts from committed `HEAD`. Check the writer’s branch with `b
 
 ## What platforms and setups does broco support?
 
-`broco` runs natively on macOS, Linux, and Windows 11 (PowerShell, Windows Terminal, and `cmd`, plus WSL2 via the Linux backend) with Node.js 24+ and Git, and works best when you have two or more signed-in coding harnesses on the same machine (Claude Code, Codex, Cursor, Antigravity, OpenCode, or Pi). On native Windows, the runner uses Named Pipes (`\\.\pipe\broco-*`), resolves `.exe` and npm `.cmd` CLIs directly, writes a `broco.cmd` skill launcher, and links Pi skills via admin-free NTFS junctions. For quick single-file edits inside the same model family, your current host’s built-in subagent is usually fastest.
+`broco` runs natively on macOS, Linux, and Windows 11 (PowerShell, Windows Terminal, and `cmd`, plus WSL2 via the Linux backend) with Git, and works best when you have two or more signed-in coding harnesses on the same machine (Claude Code, Codex, Cursor, Antigravity, OpenCode, or Pi). The one-line installer brings its own Node 24 LTS runtime when needed (no admin rights required), and direct `npm` installs support Node.js 22.13+. On native Windows, the runner uses Named Pipes (`\\.\pipe\broco-*`), resolves `.exe` and npm `.cmd` CLIs directly, writes a `broco.cmd` skill launcher, and links Pi skills via admin-free NTFS junctions. For quick single-file edits inside the same model family, your current host’s built-in subagent is usually fastest.
+
+## Does the one-line installer alter my existing Node or npm?
+
+No. If `node` on `PATH` is already 22.13.0 or newer (and `BROCO_FORCE_RUNTIME` is unset), the installer reuses it read-only; otherwise it extracts an isolated Node 24 LTS runtime into `<install-root>/runtime/` (`~/.local/share/broco/runtime` on Unix, `%LOCALAPPDATA%\broco\runtime` on Windows). It installs `@yanauto/broco` into `<install-root>/app/` using `--prefix`, leaving your global npm prefix and shell rc files untouched.
+
+## How do I uninstall broco?
+
+Run the installer with `--uninstall` on macOS/Linux (`curl -fsSL https://broco.yanauto.me/install.sh | sh -s -- --uninstall`) or `-Uninstall` on Windows PowerShell (`& ([scriptblock]::Create((irm https://broco.yanauto.me/install.ps1))) -Uninstall`). Your `~/.broco/` history and settings are preserved unless you append `--purge` / `-Purge` alongside uninstall (or set `BROCO_UNINSTALL=1` and `BROCO_PURGE=1`). If you installed via npm, run `npm uninstall -g @yanauto/broco`.

@@ -33,7 +33,7 @@
         <img class="mascot-px" src="assets/broco-foreman-256.png" width="28" height="28" alt="">
         <span>broco</span>
       </a>
-      <a class="ver-pill" href="changelog/" data-route="changelog">v1.1.0</a>
+      <a class="ver-pill" href="changelog/" data-route="changelog">v1.2.0</a>
     </div>
     <nav class="top-nav" aria-label="Main">
       <a href="#under-the-hood" data-zh="原理">How it works</a>
@@ -64,17 +64,25 @@
         <span class="hero-accent" data-zh="一起干活。">work together.</span>
       </h1>
       <p class="hero-lede" data-zh="留在你此刻正在用的 harness 里，直接叫本机其他 AI 一起干活。各自拉独立 worktree 并行改代码、换另一家模型盲审 diff，主力快撞额度时顺手交接，全程复用本机已登录的官方 CLI。">Stay in whichever coding agent you already have open, and delegate to the rest on your machine. Run parallel git worktrees, ask another model family for a cold diff review, and route around 5-hour quota limits using your existing logins.</p>
-      <div class="hero-cmd on-dark">
-        <span class="cmd-prompt" aria-hidden="true">$</span>
-        <code id="hero-command">npm i -g @yanauto/broco &amp;&amp; broco setup</code>
-        <button class="keycap keycap-brand cmd-copy-btn" id="hero-copy" type="button" data-zh="复制">Copy</button>
+      <div class="hero-install">
+        <div class="os-tabs" role="tablist" aria-label="Install method" data-zh-aria="安装方式">
+          <button class="os-tab" type="button" role="tab" id="hero-tab-unix" aria-selected="true" data-os-target="hero" data-os="unix">macOS / Linux</button>
+          <button class="os-tab" type="button" role="tab" id="hero-tab-win" aria-selected="false" data-os-target="hero" data-os="win">Windows PowerShell</button>
+          <button class="os-tab" type="button" role="tab" id="hero-tab-npm" aria-selected="false" data-os-target="hero" data-os="npm" data-zh="已有 Node 22.13+？">Already on Node 22.13+?</button>
+        </div>
+        <div class="hero-cmd on-dark">
+          <span class="cmd-prompt" id="hero-prompt" aria-hidden="true">$</span>
+          <code id="hero-command">curl -fsSL https://broco.yanauto.me/install.sh | sh</code>
+          <button class="keycap keycap-brand cmd-copy-btn" id="hero-copy" type="button" data-zh="复制">Copy</button>
+        </div>
+        <p class="hero-install-note" id="hero-install-note" data-zh="按需自带 Node 运行时，装入独立目录，免管理员权限，保持本机原有 Node 与 npm 原样。">Brings its own Node runtime when needed, installs into its own folder, needs no admin rights, and leaves existing Node/npm untouched.</p>
       </div>
       <div class="hero-aux">
         <a class="aux-link" href="docs/" data-route="docs"><span data-zh="阅读文档">Read docs</span> <span aria-hidden="true">→</span></a>
         <span class="aux-dot" aria-hidden="true">·</span>
         <a class="aux-link" href="https://github.com/yanauto/broco">GitHub <span aria-hidden="true">↗</span></a>
         <span class="aux-dot" aria-hidden="true">·</span>
-        <span class="aux-env">macOS, Linux &amp; Windows 11 · Node 24+</span>
+        <span class="aux-env" data-zh="macOS、Linux 与 Windows 11 · Node 22.13+（缺失时自动自带）">macOS, Linux &amp; Windows 11 · Node 22.13+ (auto-bundled if needed)</span>
       </div>
     </div>
 
@@ -125,7 +133,7 @@
           <div class="foreman-frame">
             <img class="mascot-px foreman-img" src="assets/broco-foreman-256.png" width="116" height="116" alt="broco 16-bit pixel broccoli mascot wearing a yellow hard hat">
           </div>
-          <span class="foreman-badge">BROCO · v1.1</span>
+          <span class="foreman-badge">BROCO · v1.2</span>
         </div>
       </div>
 
@@ -369,8 +377,8 @@
     <div class="wrap setup-grid">
       <div class="setup-copy">
         <p class="section-kicker"><span class="tnum">02</span> / <span data-zh="快速上手">GET STARTED</span></p>
-        <h2 data-zh="两行命令，连起本机所有 harness">Two commands to connect your harnesses.</h2>
-        <p class="setup-desc" data-zh="需要 macOS、Linux 或 Windows 11（原生支持 PowerShell、Windows Terminal、cmd，兼容 WSL2）、Node.js 24+、Git，以及至少两个本机已登录的编程 CLI。broco setup 会探测已安装的 harness，让你确认允许协作的名单、查看实时额度，并把 broco Skill 装进本机各宿主目录。">Requires macOS, Linux, or Windows 11 (PowerShell, Windows Terminal, cmd, or WSL2), Node.js 24+, Git, and two or more signed-in coding CLIs. broco setup detects installed harnesses, lets you confirm which ones can collaborate, prints live quotas, and installs the broco skill into your local hosts.</p>
+        <h2 data-zh="一行安装，连起本机所有 harness">One line to connect your harnesses.</h2>
+        <p class="setup-desc" data-zh="支持 macOS、Linux 与 Windows 11（原生支持 PowerShell、Windows Terminal、cmd，兼容 WSL2），需要 Git 与至少两个本机已登录的编程 CLI。安装脚本按需自带 Node 运行时（已有 Node.js 22.13+ 也可直接用 npm）。broco setup 会探测已安装的 harness，让你确认允许协作的名单、查看实时额度，并把 broco Skill 装进本机各宿主目录。">Supports macOS, Linux, and Windows 11 (PowerShell, Windows Terminal, cmd, or WSL2) with Git and two or more signed-in coding CLIs. The installer brings its own Node runtime when needed (or install via npm on Node.js 22.13+). broco setup detects installed harnesses, lets you confirm which ones can collaborate, prints live quotas, and installs the broco skill into your local hosts.</p>
         <div class="trigger-card">
           <img class="mascot-px" src="assets/broco-foreman-256.png" width="52" height="52" alt="">
           <div>
@@ -381,7 +389,44 @@
       </div>
 
       <div class="setup-box">
-        <div class="seg-tabs" role="tablist" aria-label="Setup mode" data-zh-aria="安装模式">
+        <div class="install-card on-dark">
+          <div class="install-bar">
+            <div class="os-tabs os-tabs-dark" role="tablist" aria-label="Install method" data-zh-aria="系统与安装方式">
+              <button class="os-tab" type="button" role="tab" id="install-tab-unix" aria-controls="install-panel-unix" aria-selected="true" data-os-target="install" data-os="unix">macOS / Linux</button>
+              <button class="os-tab" type="button" role="tab" id="install-tab-win" aria-controls="install-panel-win" aria-selected="false" data-os-target="install" data-os="win">Windows PowerShell</button>
+              <button class="os-tab" type="button" role="tab" id="install-tab-npm" aria-controls="install-panel-npm" aria-selected="false" data-os-target="install" data-os="npm" data-zh="已有 Node 22.13+？">Already on Node 22.13+?</button>
+            </div>
+          </div>
+
+          <div class="install-panel" id="install-panel-unix" role="tabpanel" aria-labelledby="install-tab-unix">
+            <div class="install-row">
+              <span class="cmd-prompt" aria-hidden="true">$</span>
+              <code id="install-cmd-unix">curl -fsSL https://broco.yanauto.me/install.sh | sh</code>
+              <button class="keycap keycap-dark st-copy" id="copy-install-unix" type="button" data-zh="复制">Copy</button>
+            </div>
+            <p class="install-hint" data-zh="按需自带 Node 运行时，装入 ~/.local/share/broco 与 ~/.local/bin/broco，免管理员权限，保持本机原有 Node 与 npm 原样。交互终端会自动运行 broco setup（AI Agent 或 CI 可设 BROCO_NO_SETUP=1，再运行 broco setup --allow ... --yes）。">Brings its own Node runtime when needed, installs into ~/.local/share/broco and ~/.local/bin/broco, needs no admin rights, and leaves existing Node/npm untouched. Interactive shells run broco setup automatically (AI agents/CI: set BROCO_NO_SETUP=1, then broco setup --allow ... --yes).</p>
+          </div>
+
+          <div class="install-panel" id="install-panel-win" role="tabpanel" aria-labelledby="install-tab-win" hidden>
+            <div class="install-row">
+              <span class="cmd-prompt" aria-hidden="true">PS&gt;</span>
+              <code id="install-cmd-win">irm https://broco.yanauto.me/install.ps1 | iex</code>
+              <button class="keycap keycap-dark st-copy" id="copy-install-win" type="button" data-zh="复制">Copy</button>
+            </div>
+            <p class="install-hint" data-zh="按需自带 Node 运行时，装入 %LOCALAPPDATA%\broco 并将 bin 加入用户 Path，免管理员权限，保持本机原有 Node 与 npm 原样。交互终端会自动运行 broco setup（AI Agent 或 CI 可设 $env:BROCO_NO_SETUP='1'，再运行 broco setup --allow ... --yes）。">Brings its own Node runtime when needed, installs into %LOCALAPPDATA%\broco and adds bin to your User Path, needs no admin rights, and leaves existing Node/npm untouched. Interactive shells run broco setup automatically (AI agents/CI: set $env:BROCO_NO_SETUP='1', then broco setup --allow ... --yes).</p>
+          </div>
+
+          <div class="install-panel" id="install-panel-npm" role="tabpanel" aria-labelledby="install-tab-npm" hidden>
+            <div class="install-row">
+              <span class="cmd-prompt" aria-hidden="true">$</span>
+              <code id="install-cmd-npm">npm install -g @yanauto/broco</code>
+              <button class="keycap keycap-dark st-copy" id="copy-install-npm" type="button" data-zh="复制">Copy</button>
+            </div>
+            <p class="install-hint" data-zh="复用本机已有的 Node.js 22.13+ 与全局 npm 前缀。装完接着运行下方的 broco setup。">Uses your existing Node.js 22.13+ and global npm prefix. Run broco setup below next.</p>
+          </div>
+        </div>
+
+        <div class="seg-tabs" role="tablist" aria-label="Setup mode" data-zh-aria="初始化模式">
           <button class="keycap seg-tab" type="button" role="tab" id="mode-l0" aria-controls="setup-terminal" aria-selected="true" data-mode="l0" data-zh="全局（L0）">Global (L0)</button>
           <button class="keycap seg-tab" type="button" role="tab" id="mode-l1" aria-controls="setup-terminal" aria-selected="false" data-mode="l1" data-zh="项目级（L1）">Per-repo (L1)</button>
           <button class="keycap seg-tab" type="button" role="tab" id="mode-migrate" aria-controls="setup-terminal" aria-selected="false" data-mode="migrate" data-zh="从 cc-bro 迁移">Upgrade from cc-bro</button>
@@ -389,16 +434,15 @@
 
         <div class="setup-terminal on-dark" id="setup-terminal" role="tabpanel" aria-labelledby="mode-l0">
           <div class="st-bar">
-            <span class="st-label">TERMINAL · ~/.broco/</span>
+            <span class="st-label" data-zh="初始化配置 · ~/.broco/">SETUP · ~/.broco/</span>
             <button class="keycap keycap-dark st-copy" id="setup-copy" type="button" data-zh="复制命令">Copy</button>
           </div>
-          <pre><code id="setup-commands">npm install -g @yanauto/broco
-broco setup</code></pre>
+          <pre><code id="setup-commands">broco setup</code></pre>
         </div>
 
         <div class="fs-disclosure">
           <span class="fs-tag" data-zh="写入位置">FILES WRITTEN</span>
-          <p id="setup-note" data-zh="仅写入 ~/.broco/、~/.agents/skills/broco/ 以及本机已检测到的宿主 skills 目录（Claude Code、Codex、Antigravity、Cursor、OpenCode、Pi），项目仓库保持原样。">Writes to ~/.broco/, ~/.agents/skills/broco/, and detected local harness skill folders (Claude Code, Codex, Antigravity, Cursor, OpenCode, Pi). Your repo stays untouched.</p>
+          <p id="setup-note" data-zh="broco setup 写入 ~/.broco/、~/.agents/skills/broco/ 以及本机已检测到的宿主 skills 目录（Claude Code、Codex、Antigravity、Cursor、OpenCode、Pi），项目仓库保持原样。">broco setup writes to ~/.broco/, ~/.agents/skills/broco/, and detected local harness skill folders (Claude Code, Codex, Antigravity, Cursor, OpenCode, Pi). Your repo stays untouched.</p>
         </div>
         <span class="sr" aria-live="polite" id="notice"></span>
       </div>
@@ -436,7 +480,7 @@ broco setup</code></pre>
   <div class="foot-left">
     <img class="mascot-px" src="assets/broco-foreman-256.png" width="22" height="22" alt="">
     <span class="foot-brand">broco</span>
-    <span class="foot-meta tnum">v1.1.0 · Apache-2.0</span>
+    <span class="foot-meta tnum">v1.2.0 · Apache-2.0</span>
   </div>
   <div class="foot-links">
     <a href="docs/" data-route="docs" data-zh="文档">Docs</a>

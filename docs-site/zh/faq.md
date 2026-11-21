@@ -36,4 +36,12 @@
 
 ## 支持哪些平台与使用环境？
 
-`broco` 原生支持 macOS、Linux 与 Windows 11（PowerShell、Windows Terminal 与 `cmd`，WSL2 可通过 Linux 后端运行），需要 Node.js 24+ 与 Git，适合在同一台电脑上装有两个及以上已登录编程 harness（Claude Code、Codex、Cursor、Antigravity、OpenCode、Pi）的开发工作流。原生 Windows 下通过命名管道（`\\.\pipe\broco-*`）通信、直接解析 `.exe` 与 npm `.cmd` CLI、生成 `broco.cmd` 技能启动器并通过免管理员权限的 NTFS 目录联接挂载 Pi 技能。同模型族内的几行快速小改，直接用当前宿主自带的 subagent 通常最轻快。
+`broco` 原生支持 macOS、Linux 与 Windows 11（PowerShell、Windows Terminal 与 `cmd`，WSL2 可通过 Linux 后端运行），需要 Git，适合在同一台电脑上装有两个及以上已登录编程 harness（Claude Code、Codex、Cursor、Antigravity、OpenCode、Pi）的开发工作流。一行安装脚本会在需要时自带 Node 24 LTS 运行时（免管理员权限），通过 `npm` 安装则支持 Node.js 22.13+。原生 Windows 下通过命名管道（`\\.\pipe\broco-*`）通信、直接解析 `.exe` 与 npm `.cmd` CLI、生成 `broco.cmd` 技能启动器并通过免管理员权限的 NTFS 目录联接挂载 Pi 技能。同模型族内的几行快速小改，直接用当前宿主自带的 subagent 通常最轻快。
+
+## 一行安装脚本会改动本机原有的 Node 或 npm 吗？
+
+不会。当 `PATH` 中的 `node` 已达到 22.13.0 及以上（且未设置 `BROCO_FORCE_RUNTIME`）时，安装脚本会直接只读复用；否则仅在私有目录 `<安装根目录>/runtime/`（Unix 为 `~/.local/share/broco/runtime`，Windows 为 `%LOCALAPPDATA%\broco\runtime`）中解压独立的 Node 24 LTS 运行时，并用 `--prefix` 将 `@yanauto/broco` 装入 `<安装根目录>/app/`，保持全局 npm 前缀与 shell 配置文件原样。
+
+## 如何卸载 broco？
+
+在 macOS/Linux 上运行 `curl -fsSL https://broco.yanauto.me/install.sh | sh -s -- --uninstall`，在 Windows PowerShell 上运行 `& ([scriptblock]::Create((irm https://broco.yanauto.me/install.ps1))) -Uninstall`。卸载默认保留 `~/.broco/` 中的工单历史与策略；如需一并删除，在卸载命令后追加 `--purge` / `-Purge`（或同时设置 `BROCO_UNINSTALL=1` 与 `BROCO_PURGE=1`）。若通过 npm 安装，执行 `npm uninstall -g @yanauto/broco`。

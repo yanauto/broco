@@ -2,26 +2,42 @@
 
 `broco` is the direct evolution of `opus-manager` (v0.4) and `cc-bro` (0.4.x). Upgrading preserves your projects, policies, named sessions, and ticket history.
 
-## Upgrading from 1.0.x
+## Upgrading from 1.0.x or 1.1.x
 
 1. Let any active turns you want to preserve finish (`broco status`).
-2. Update the package, restart the runner, and refresh the installed launcher and host skills:
+2. Stop the running daemon (`broco shutdown`), then upgrade in place using your current install method — or remove an older global `npm` shim (`npm uninstall -g @yanauto/broco`) first when switching to the one-line installer so an earlier `PATH` entry does not shadow the new binary:
+
+macOS / Linux (one-line installer):
 
 ```sh
-npm install -g @yanauto/broco@latest
 broco shutdown
+curl -fsSL https://broco.yanauto.me/install.sh | sh
+```
+
+Windows PowerShell (one-line installer):
+
+```powershell
+broco shutdown
+irm https://broco.yanauto.me/install.ps1 | iex
+```
+
+Or if keeping a global npm install (Node.js 22.13+):
+
+```sh
+broco shutdown
+npm install -g @yanauto/broco@latest
 broco setup
 ```
 
-Existing `~/.broco/` settings, allowlists, sessions, and ticket history remain untouched.
+Existing `~/.broco/` settings, allowlists, sessions, and ticket history remain untouched. (In non-interactive shells after the one-line installer, run `broco setup` explicitly.)
 
 ## Upgrading from `cc-bro` (0.4.x) or `opus-manager`
 
 1. If you have active turns you want to finish, check `cc-bro status` and wait for them to complete.
-2. Install `broco`, stop any legacy runner, and run `broco setup`:
+2. Install `broco` (via the [one-line installer](installation.md) with `BROCO_NO_SETUP=1`, or `npm install -g @yanauto/broco`), stop any legacy runner, and run `broco setup --migrate-cc-bro`:
 
 ```sh
-npm install -g @yanauto/broco
+curl -fsSL https://broco.yanauto.me/install.sh | BROCO_NO_SETUP=1 sh
 broco shutdown
 broco setup --migrate-cc-bro
 ```

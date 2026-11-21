@@ -1,6 +1,6 @@
 # 第一张工单
 
-跑完 `broco setup` 后在任意仓库即可直接开始，无需先运行 `broco init`。先试一张只读单，或者拉起独立 git worktree 改代码并做一次跨模型盲审。
+完成[安装](installation.md)与一次 `broco setup` 后，在任意仓库即可直接开始，无需先运行 `broco init`。先试一张只读单，或者拉起独立 git worktree 改代码并做一次跨模型盲审。
 
 ## 1. 在现有主 Agent 对话框直接说自然语言（推荐）
 
@@ -36,7 +36,7 @@ broco done auth-fix --result pass --why "过期与刷新测试通过。"
 broco clean auth-fix --delete-branch
 ```
 
-- `wait` 采用事件驱动即刻唤醒（0ms，告别 SQLite 轮询），直接返回 `reply`、`task`、`cwd`、`worktree`、`branch` 和 `changedFiles`。
+- `wait` 采用事件驱动即刻唤醒（0ms，无 SQLite 轮询），直接返回 `reply`、`task`、`cwd`、`worktree`、`branch` 和 `changedFiles`。
 - `review` 省略 `--by` 时自动挑选与原单不同厂商且额度宽裕的已放行工人（也可显式传 `--by claude`、`--by codex` 等）。
 - `clean` 在合并或保留改动后安全清理残留 worktree（可先加 `--dry-run` 预览）。
 

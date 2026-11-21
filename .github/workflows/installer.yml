@@ -1,0 +1,182 @@
+name: Installer
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unix:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Syntax check install.sh
+        run: |
+          sh -n site/public/install.sh
+          if command -v dash >/dev/null 2>&1; then dash -n site/public/install.sh; fi
+          if command -v shellcheck >/dev/null 2>&1; then shellcheck -s sh site/public/install.sh; fi
+      - name: Build board and pack tarball
+        run: |
+          npm ci --prefix ui --no-audit --no-fund
+          node scripts/package-board.mjs
+          mkdir -p "$RUNNER_TEMP/pack"
+          npm pack --pack-destination "$RUNNER_TEMP/pack"
+      - name: Test forced-runtime install and uninstall
+        run: |
+          set -eu
+          tgz=$(ls "$RUNNER_TEMP"/pack/*.tgz | head -n 1)
+          iso="$RUNNER_TEMP/iso-forced"
+          rm -rf "$iso"
+          mkdir -p "$iso/home"
+          HOME="$iso/home" \
+          BROCO_INSTALL_DIR="$iso/install" \
+          BROCO_BIN_DIR="$iso/bin" \
+          BROCO_HOME="$iso/data" \
+          BROCO_HOST_HOME="$iso/home" \
+          BROCO_FORCE_RUNTIME=1 \
+          BROCO_NO_SETUP=1 \
+          BROCO_PACKAGE="$tgz" \
+          sh < site/public/install.sh
+          test -x "$iso/install/runtime/bin/node"
+          test -x "$iso/bin/broco"
+          HOME="$iso/home" BROCO_HOME="$iso/data" BROCO_HOST_HOME="$iso/home" "$iso/bin/broco" --version
+          HOME="$iso/home" BROCO_HOME="$iso/data" BROCO_HOST_HOME="$iso/home" "$iso/bin/broco" --help >/dev/null
+          HOME="$iso/home" \
+          BROCO_INSTALL_DIR="$iso/install" \
+          BROCO_BIN_DIR="$iso/bin" \
+          BROCO_HOME="$iso/data" \
+          sh site/public/install.sh --uninstall
+          test ! -e "$iso/install"
+          test ! -e "$iso/bin/broco"
+      - name: Test reuse-node install and uninstall
+        run: |
+          set -eu
+          tgz=$(ls "$RUNNER_TEMP"/pack/*.tgz | head -n 1)
+          iso="$RUNNER_TEMP/iso-reuse"
+          rm -rf "$iso"
+          mkdir -p "$iso/home"
+          HOME="$iso/home" \
+          BROCO_INSTALL_DIR="$iso/install" \
+          BROCO_BIN_DIR="$iso/bin" \
+          BROCO_HOME="$iso/data" \
+          BROCO_HOST_HOME="$iso/home" \
+          BROCO_NO_SETUP=1 \
+          BROCO_PACKAGE="$tgz" \
+          sh < site/public/install.sh
+          test ! -e "$iso/install/runtime"
+          test -x "$iso/bin/broco"
+          HOME="$iso/home" BROCO_HOME="$iso/data" BROCO_HOST_HOME="$iso/home" "$iso/bin/broco" --version
+          HOME="$iso/home" BROCO_HOME="$iso/data" BROCO_HOST_HOME="$iso/home" "$iso/bin/broco" --help >/dev/null
+          HOME="$iso/home" \
+          BROCO_INSTALL_DIR="$iso/install" \
+          BROCO_BIN_DIR="$iso/bin" \
+          BROCO_HOME="$iso/data" \
+          BROCO_UNINSTALL=1 \
+          sh < site/public/install.sh
+          test ! -e "$iso/install"
+          test ! -e "$iso/bin/broco"
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Syntax check install.ps1
+        shell: powershell
+        run: |
+          $e = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'site/public/install.ps1').Path, [ref]$null, [ref]$e)
+          if ($e.Count) {
+            $e | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+      - name: Build board and pack tarball
+        shell: powershell
+        run: |
+          npm ci --prefix ui --no-audit --no-fund
+          node scripts/package-board.mjs
+          $packDir = Join-Path $env:RUNNER_TEMP 'pack'
+          New-Item -ItemType Directory -Path $packDir -Force | Out-Null
+          npm pack --pack-destination $packDir
+      - name: Test forced-runtime install and uninstall (Windows PowerShell 5.1)
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $beforeUserPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+          $tgz = (Get-ChildItem -Path (Join-Path $env:RUNNER_TEMP 'pack') -Filter '*.tgz' | Select-Object -First 1).FullName
+          $iso = Join-Path $env:RUNNER_TEMP 'iso-forced'
+          if (Test-Path -LiteralPath $iso) { Remove-Item -LiteralPath $iso -Recurse -Force }
+          $installDir = Join-Path $iso 'install'
+          $dataDir = Join-Path $iso 'data'
+          $hostHome = Join-Path $iso 'home'
+          New-Item -ItemType Directory -Path $hostHome -Force | Out-Null
+          $env:BROCO_INSTALL_DIR = $installDir
+          $env:BROCO_HOME = $dataDir
+          $env:BROCO_HOST_HOME = $hostHome
+          $env:BROCO_FORCE_RUNTIME = '1'
+          $env:BROCO_NO_SETUP = '1'
+          $env:BROCO_PACKAGE = $tgz
+          Get-Content -Raw 'site/public/install.ps1' | Invoke-Expression
+          $runtimeNode = Join-Path (Join-Path $installDir 'runtime') 'node.exe'
+          $shim = Join-Path (Join-Path $installDir 'bin') 'broco.cmd'
+          if (-not (Test-Path -LiteralPath $runtimeNode -PathType Leaf)) { throw 'Missing runtime/node.exe' }
+          if (-not (Test-Path -LiteralPath $shim -PathType Leaf)) { throw 'Missing bin/broco.cmd' }
+          & $shim --version
+          if ($LASTEXITCODE -ne 0) { throw 'broco --version failed' }
+          & $shim --help | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'broco --help failed' }
+          & .\site\public\install.ps1 -Uninstall
+          if (Test-Path -LiteralPath $installDir) { throw 'Install dir not removed' }
+          $afterUserPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+          if ($afterUserPath -ne $beforeUserPath) { throw "User Path not restored: before='$beforeUserPath' after='$afterUserPath'" }
+      - name: Test reuse-node install and uninstall (Windows PowerShell 5.1)
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $beforeUserPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+          $tgz = (Get-ChildItem -Path (Join-Path $env:RUNNER_TEMP 'pack') -Filter '*.tgz' | Select-Object -First 1).FullName
+          $iso = Join-Path $env:RUNNER_TEMP 'iso-reuse'
+          if (Test-Path -LiteralPath $iso) { Remove-Item -LiteralPath $iso -Recurse -Force }
+          $installDir = Join-Path $iso 'install'
+          $dataDir = Join-Path $iso 'data'
+          $hostHome = Join-Path $iso 'home'
+          New-Item -ItemType Directory -Path $hostHome -Force | Out-Null
+          Remove-Item Env:BROCO_FORCE_RUNTIME -ErrorAction SilentlyContinue
+          Remove-Item Env:BROCO_UNINSTALL -ErrorAction SilentlyContinue
+          $env:BROCO_INSTALL_DIR = $installDir
+          $env:BROCO_HOME = $dataDir
+          $env:BROCO_HOST_HOME = $hostHome
+          $env:BROCO_NO_SETUP = '1'
+          $env:BROCO_PACKAGE = $tgz
+          Get-Content -Raw 'site/public/install.ps1' | Invoke-Expression
+          $runtimeDir = Join-Path $installDir 'runtime'
+          $shim = Join-Path (Join-Path $installDir 'bin') 'broco.cmd'
+          if (Test-Path -LiteralPath $runtimeDir) { throw 'runtime dir should not exist on reuse path' }
+          if (-not (Test-Path -LiteralPath $shim -PathType Leaf)) { throw 'Missing bin/broco.cmd' }
+          & $shim --version
+          if ($LASTEXITCODE -ne 0) { throw 'broco --version failed' }
+          & $shim --help | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'broco --help failed' }
+          $env:BROCO_UNINSTALL = '1'
+          Get-Content -Raw 'site/public/install.ps1' | Invoke-Expression
+          if (Test-Path -LiteralPath $installDir) { throw 'Install dir not removed' }
+          $afterUserPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+          if ($afterUserPath -ne $beforeUserPath) { throw "User Path not restored: before='$beforeUserPath' after='$afterUserPath'" }

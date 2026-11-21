@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.2.0
+
+### English
+
+Released 2026-11-21 — One-line installers with bundled Node runtime when needed, plus Node.js 22.13+ support.
+
+- **One-Line Cross-Platform Installers (`install.sh` & `install.ps1`)**:
+  - Added `curl -fsSL https://broco.yanauto.me/install.sh | sh` (POSIX `sh` for macOS arm64/x64 and Linux x64/arm64 glibc) and `irm https://broco.yanauto.me/install.ps1 | iex` (Windows PowerShell 5.1 and PowerShell 7 for Windows x64/arm64).
+  - Reuses compatible `node` on `PATH` when available (or downloads and SHA-256-verifies official Node 24 LTS into `<install-root>/runtime/` when missing or forced via `BROCO_FORCE_RUNTIME=1`), installs `@yanauto/broco` into `<install-root>/app/` without touching global npm prefixes or shell rc files, needs no administrator privileges, and runs `broco setup` automatically in interactive shells.
+  - Added full install/uninstall options (`BROCO_INSTALL_DIR`, `BROCO_BIN_DIR`, `BROCO_VERSION`, `BROCO_NODE_MIRROR` / `BROCO_NPM_REGISTRY` with automatic `npmmirror.com` fallback, `BROCO_NO_SETUP=1`, `BROCO_PACKAGE`, and `--uninstall` / `-Uninstall` with optional `--purge` / `-Purge`).
+- **Node.js 22.13+ Support**:
+  - Lowered the minimum supported Node.js version from `24` to `22.13.0`, silenced only the Node 22 `node:sqlite` `ExperimentalWarning` across CLI and runner subprocesses so JSON stdout/stderr stays clean, and prints actionable install guidance on unsupported Node versions.
+  - Expanded GitHub Actions CI across `ubuntu-latest` and `windows-latest` on Node `22.13.0` and `24`, plus end-to-end installer verification across `ubuntu-latest`, `macos-latest`, and `windows-latest`.
+
+### 简体中文
+
+2026-11-21 发布 —— 新增跨平台一行安装脚本（按需自带 Node 运行时），并将最低 Node.js 要求降至 22.13+。
+
+- **跨平台一行安装脚本（`install.sh` 与 `install.ps1`）**：
+  - 新增 `curl -fsSL https://broco.yanauto.me/install.sh | sh`（POSIX `sh`，支持 macOS arm64/x64 与 Linux x64/arm64 glibc）及 `irm https://broco.yanauto.me/install.ps1 | iex`（支持 Windows PowerShell 5.1 与 PowerShell 7，覆盖 Windows x64/arm64）。
+  - 优先只读复用 `PATH` 中已达标的 `node`，缺失或设置 `BROCO_FORCE_RUNTIME=1` 时下载官方 Node 24 LTS 并校验 SHA-256 后解压至私有 `<安装根目录>/runtime/`，通过 `--prefix` 将 `@yanauto/broco` 装入 `<安装根目录>/app/`，免管理员权限且保持现有 Node、全局 npm 前缀与 shell 配置文件原样；交互终端下自动继续运行 `broco setup`。
+  - 支持完整安装与卸载参数（`BROCO_INSTALL_DIR`、`BROCO_BIN_DIR`、`BROCO_VERSION`、带 `npmmirror.com` 自动回退的 `BROCO_NODE_MIRROR` / `BROCO_NPM_REGISTRY`、`BROCO_NO_SETUP=1`、`BROCO_PACKAGE`，以及 `--uninstall` / `-Uninstall` 与可选 `--purge` / `-Purge`）。
+- **Node.js 22.13+ 兼容支持**：
+  - 将最低 Node.js 版本要求从 `24` 下调至 `22.13.0`，在 CLI 与后台 runner 子进程中精确过滤 Node 22 的 `node:sqlite` `ExperimentalWarning` 以确保 JSON 标准输出与错误流干净，并在版本过低时给出清晰的安装指引。
+  - GitHub Actions CI 矩阵扩展至 `ubuntu-latest` 与 `windows-latest`（Node `22.13.0` 与 `24`），并新增覆盖 `ubuntu-latest`、`macos-latest` 与 `windows-latest` 的安装脚本端到端验证。
+
 ## 1.1.0
 
 ### English

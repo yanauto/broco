@@ -2,26 +2,42 @@
 
 `broco` 由 `opus-manager`（v0.4）与 `cc-bro`（0.4.x）平滑演进而来，完整保留已有项目策略、具名会话与工单历史。
 
-## 从 1.0.x 升级
+## 从 1.0.x 或 1.1.x 升级
 
 1. 如有需要保留的在跑任务，先用 `broco status` 确认并等待其完成。
-2. 升级包版本、重启后台服务并刷新启动器与各宿主技能文件：
+2. 先执行 `broco shutdown` 停掉后台服务，再按当前安装方式原地升级——若要从旧版 `npm -g` 切换到一行安装脚本，请先运行 `npm uninstall -g @yanauto/broco` 移除旧全局入口，避免排在 `PATH` 前面的旧命令遮挡新版本：
+
+macOS / Linux（一行安装脚本）：
 
 ```sh
-npm install -g @yanauto/broco@latest
 broco shutdown
+curl -fsSL https://broco.yanauto.me/install.sh | sh
+```
+
+Windows PowerShell（一行安装脚本）：
+
+```powershell
+broco shutdown
+irm https://broco.yanauto.me/install.ps1 | iex
+```
+
+若继续使用全局 npm 安装（Node.js 22.13+）：
+
+```sh
+broco shutdown
+npm install -g @yanauto/broco@latest
 broco setup
 ```
 
-原有的 `~/.broco/` 配置、允许名单、会话与工单历史保持原样。
+原有的 `~/.broco/` 配置、允许名单、会话与工单历史保持原样。（在非交互终端跑完一行安装脚本后，再执行一次 `broco setup`。）
 
 ## 从 `cc-bro`（0.4.x）或 `opus-manager` 升级
 
 1. 如有需要跑完的在跑任务，先用旧版 `cc-bro status` 确认并等待其完成。
-2. 安装 `broco`，停止旧版后台服务并运行 `broco setup`：
+2. 安装 `broco`（可使用带 `BROCO_NO_SETUP=1` 的[一行安装脚本](installation.md)，或 `npm install -g @yanauto/broco`），停止旧版后台服务并运行 `broco setup --migrate-cc-bro`：
 
 ```sh
-npm install -g @yanauto/broco
+curl -fsSL https://broco.yanauto.me/install.sh | BROCO_NO_SETUP=1 sh
 broco shutdown
 broco setup --migrate-cc-bro
 ```

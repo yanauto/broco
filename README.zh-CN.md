@@ -14,12 +14,58 @@
 
 ## 快速上手
 
-需要 macOS、Linux 或 Windows 11、Node.js 24+、Git（Windows 11 需安装 Git for Windows），以及至少两个你已在本机登录好的编程 CLI。
+需要 macOS、Linux 或 Windows 11、Git（Windows 11 需安装 Git for Windows），以及至少两个你已在本机登录好的编程 CLI。一行安装脚本会在需要时自带 Node 运行时；改用 `npm` 安装则需要 Node.js 22.13+。
+
+**一行脚本安装（推荐）：**
+
+macOS / Linux：
+
+```sh
+curl -fsSL https://broco.yanauto.me/install.sh | sh
+```
+
+Windows（PowerShell）：
+
+```powershell
+irm https://broco.yanauto.me/install.ps1 | iex
+```
+
+安装脚本会按需自带 Node 24 LTS 运行时（或直接复用 `PATH` 中已有的 Node 22.13+），装入独立目录（macOS/Linux 为 `~/.local/share/broco` 与 `~/.local/bin/broco`；Windows 为 `%LOCALAPPDATA%\broco`），免管理员权限，保持本机原有 Node 与 npm 原样。交互终端下会自动继续运行 `broco setup`；非交互环境下装完执行 `broco setup` 即可。重复执行同一条安装命令即可原地升级。
+
+**本机已有 Node 22.13+？**
 
 ```sh
 npm install -g @yanauto/broco
 broco setup
 ```
+
+### 安装选项
+
+两条安装脚本均支持以下环境变量（也支持 `--no-setup`、`--version <版本>`、`--uninstall`、`--purge`、`--help`；Windows 对应 `-NoSetup`、`-Version <版本>`、`-Uninstall`、`-Purge`）：
+
+- `BROCO_INSTALL_DIR`：自定义安装根目录（Unix 默认 `~/.local/share/broco`，Windows 默认 `%LOCALAPPDATA%\broco`）；`BROCO_BIN_DIR` 可改写 Unix 入口目录（默认 `~/.local/bin`）。
+- `BROCO_NODE_MIRROR` / `BROCO_NPM_REGISTRY`：自定义下载源；中国大陆用户遇到官方源超时或失败时，两条脚本都会自动回退到 `https://npmmirror.com/mirrors/node` 与 `https://registry.npmmirror.com`。
+- `BROCO_VERSION`：指定安装的 `@yanauto/broco` 版本或 dist-tag（默认 `latest`）。
+- `BROCO_NO_SETUP=1`：跳过安装后自动运行 `broco setup`，仅提示 `Next: broco setup`（适合 AI Agent 与 CI 调用）。
+- `BROCO_FORCE_RUNTIME=1`：强制在 `<root>/runtime/` 下载独立 Node 24 LTS 运行时，跳过复用 `PATH` 上的 `node`。
+
+### 卸载
+
+macOS / Linux：
+
+```sh
+curl -fsSL https://broco.yanauto.me/install.sh | sh -s -- --uninstall
+```
+
+Windows（PowerShell）：
+
+```powershell
+& ([scriptblock]::Create((irm https://broco.yanauto.me/install.ps1))) -Uninstall
+```
+
+卸载会删除安装目录、入口脚本及 Windows 用户 `Path` 条目，同时保留 `~/.broco/` 中的数据与工单历史（如需一并清理 `~/.broco/`，在卸载命令后追加 `--purge` 或 `-Purge`，或同时设置 `BROCO_UNINSTALL=1` 与 `BROCO_PURGE=1`）。若通过 npm 安装，执行 `npm uninstall -g @yanauto/broco`。
+
+### `broco setup` 会做什么
 
 `broco setup` 一次完成四件事：
 

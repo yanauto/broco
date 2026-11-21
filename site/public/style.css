@@ -79,6 +79,43 @@ html[lang="zh-CN"] .hero-copy h1 {
   line-height: 1.58;
 }
 
+.hero-install {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.os-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.os-tab {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-chip);
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+  transition: border-color var(--t-snap), background-color var(--t-snap), color var(--t-snap);
+}
+
+.os-tab:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.os-tab[aria-selected="true"] {
+  border-color: var(--brand-green-ink);
+  background: var(--brand-green-tint);
+  color: var(--brand-green-ink);
+}
+
 .hero-cmd {
   display: flex;
   align-items: center;
@@ -89,6 +126,7 @@ html[lang="zh-CN"] .hero-copy h1 {
   background: var(--term-bg);
   color: var(--term-ink);
   box-shadow: inset 0 1px 0 var(--card-top-highlight);
+  min-width: 0;
 }
 
 .cmd-prompt {
@@ -97,6 +135,14 @@ html[lang="zh-CN"] .hero-copy h1 {
   font-weight: 700;
   color: #FFD426;
   user-select: none;
+  flex-shrink: 0;
+}
+
+.hero-install-note {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
 }
 
 .hero-cmd code {
@@ -1164,6 +1210,81 @@ html[lang="zh-CN"] .hero-copy h1 {
   gap: 12px;
 }
 
+.install-card {
+  border: 1px solid var(--term-line);
+  border-radius: var(--radius-panel);
+  background: var(--term-bg);
+  color: var(--term-ink);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.install-bar {
+  padding: 8px 10px;
+  background: var(--term-bar);
+  border-bottom: 1px solid var(--term-line);
+}
+
+.os-tabs-dark .os-tab {
+  border-color: transparent;
+  background: transparent;
+  color: #8E9288;
+}
+
+.os-tabs-dark .os-tab:hover {
+  border-color: #3E4239;
+  color: #F2EFE8;
+}
+
+.os-tabs-dark .os-tab[aria-selected="true"] {
+  border-color: rgba(76, 217, 110, 0.45);
+  background: rgba(76, 217, 110, 0.14);
+  color: #4CD96E;
+}
+
+.install-panel {
+  padding: 12px 14px 14px;
+  min-width: 0;
+}
+
+.install-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid #262923;
+  border-radius: var(--radius-card);
+  background: #0D0F0C;
+  min-width: 0;
+}
+
+.install-row code {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--term-ink);
+  scrollbar-width: none;
+}
+
+.install-row code::-webkit-scrollbar {
+  display: none;
+}
+
+.install-row .st-copy {
+  flex-shrink: 0;
+}
+
+.install-hint {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  line-height: 1.52;
+  color: #B4B8AF;
+}
+
 .seg-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1438,6 +1559,10 @@ html[lang="zh-CN"] .hero-copy h1 {
   }
   .ui-cols {
     grid-template-columns: 1fr;
+  }
+  .os-tab {
+    font-size: 11px;
+    padding: 4px 8px;
   }
   .section,
   .setup-band {

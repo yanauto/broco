@@ -14,14 +14,60 @@
 
 ## Get started
 
-Requires macOS, Linux, or Windows 11, Node.js 24+, Git (Git for Windows on Windows 11), and two or more coding CLIs you already signed into locally.
+Requires macOS, Linux, or Windows 11, Git (Git for Windows on Windows 11), and two or more coding CLIs you already signed into locally. The one-line installer brings its own Node runtime when needed; installing via `npm` requires Node.js 22.13+.
+
+**One-line installer (recommended):**
+
+macOS / Linux:
+
+```sh
+curl -fsSL https://broco.yanauto.me/install.sh | sh
+```
+
+Windows (PowerShell):
+
+```powershell
+irm https://broco.yanauto.me/install.ps1 | iex
+```
+
+The installer brings its own Node 24 LTS runtime when needed (or reuses Node 22.13+ on `PATH`), installs into its own folder (`~/.local/share/broco` and `~/.local/bin/broco` on macOS/Linux; `%LOCALAPPDATA%\broco` on Windows), needs no admin rights, and leaves existing Node/npm untouched. Interactive shells run `broco setup` automatically; in non-interactive shells, run `broco setup` afterward. Re-run the same command to upgrade in place.
+
+**Already on Node 22.13+?**
 
 ```sh
 npm install -g @yanauto/broco
 broco setup
 ```
 
-`broco setup` does four things in one pass:
+### Install options
+
+Both installers support environment overrides (and flags `--no-setup`, `--version <ver>`, `--uninstall`, `--purge`, `--help` on Unix; `-NoSetup`, `-Version <ver>`, `-Uninstall`, `-Purge` on Windows):
+
+- `BROCO_INSTALL_DIR`: override install root (default `~/.local/share/broco` on Unix, `%LOCALAPPDATA%\broco` on Windows); `BROCO_BIN_DIR` overrides the Unix shim folder (default `~/.local/bin`).
+- `BROCO_NODE_MIRROR` / `BROCO_NPM_REGISTRY`: mirror overrides; for users in mainland China, both installers automatically fall back to `https://npmmirror.com/mirrors/node` and `https://registry.npmmirror.com` on download failure.
+- `BROCO_VERSION`: install a pinned `@yanauto/broco` version or dist-tag (default `latest`).
+- `BROCO_NO_SETUP=1`: skip post-install `broco setup` and print `Next: broco setup` (useful for AI agents and CI).
+- `BROCO_FORCE_RUNTIME=1`: always download the private Node 24 LTS runtime into `<root>/runtime/` instead of reusing `node` on `PATH`.
+
+### Uninstall
+
+macOS / Linux:
+
+```sh
+curl -fsSL https://broco.yanauto.me/install.sh | sh -s -- --uninstall
+```
+
+Windows (PowerShell):
+
+```powershell
+& ([scriptblock]::Create((irm https://broco.yanauto.me/install.ps1))) -Uninstall
+```
+
+Removes the install root, shim, and Windows User `Path` entry while keeping `~/.broco/` data intact (append `--purge` or `-Purge` alongside uninstall — or set `BROCO_UNINSTALL=1` and `BROCO_PURGE=1` — to remove `~/.broco/` too). Installed via npm? Run `npm uninstall -g @yanauto/broco`.
+
+### What `broco setup` does
+
+`broco setup` completes four steps in one pass:
 
 1. Detects the coding harnesses already installed and signed in on your machine.
 2. Asks you once to confirm your global allowlist (never enables workers silently).
