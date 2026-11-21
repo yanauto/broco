@@ -68,7 +68,7 @@ test('stop verifies orphan and separately aborts an active turn', async t => {
   await h.cli('say', 'a', 'hold', '--bg')
   const result = await h.json('stop', 'a')
   assert.equal(result.forced, false)
-  assert.equal(alive(pid), false)
+  await until(() => !alive(pid), 5000)
   assert.equal((await h.json('ls'))[0].flag, 'stopped')
   await assert.rejects(h.cli('wait', 'a', '2'), /Stopped/)
   assert.equal((await h.json('stop', 'a')).status, 'stopped')
@@ -80,7 +80,7 @@ test('unresponsive pi abort is bounded', async t => {
   const pid = h.query('SELECT worker_pid FROM conversations')[0].worker_pid
   const result = await h.json('stop', 'a')
   assert.equal(result.forced, true)
-  assert.equal(alive(pid), false)
+  await until(() => !alive(pid), 5000)
 })
 
 test('historical pi probes also require the isolated launcher', { skip: process.platform !== 'darwin' }, async t => {

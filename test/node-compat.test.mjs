@@ -15,6 +15,7 @@ import {
   silenceSqliteExperimentalWarning,
   unsupportedNodeMessage
 } from '../lib/node-runtime.mjs'
+import { openDatabase } from '../lib/sqlite.mjs'
 import { Store } from '../lib/store.mjs'
 
 const exec = promisify(execFile)
@@ -111,6 +112,33 @@ test('broco CLI emits clean JSON and zero SQLite ExperimentalWarning on stderr',
     assert.equal(JSON.parse(status.stdout.trim()).runner.online, false)
   } finally {
     rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test('openDatabase applies PRAGMA busy_timeout on read-write and read-only connections', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'broco-sqlite-busy-'))
+  const dbPath = join(dir, 'test.sqlite')
+  const rw = openDatabase(dbPath)
+  try {
+    rw.exec('CREATE TABLE t (id INTEGER PRIMARY KEY)')
+    assert.equal(rw.prepare('PRAGMA busy_timeout').get().timeout, 5000)
+
+    const ro = openDatabase(dbPath, { readOnly: true })
+    try {
+      assert.equal(ro.prepare('PRAGMA busy_timeout').get().timeout, 5000)
+    } finally {
+      ro.close()
+    }
+
+    const noWait = openDatabase(dbPath, { busyTimeout: 0 })
+    try {
+      assert.equal(noWait.prepare('PRAGMA busy_timeout').get().timeout, 0)
+    } finally {
+      noWait.close()
+    }
+  } finally {
+    rw.close()
+    rmSync(dir, { recursive: true, force: true, maxRetries: 20, retryDelay: 100 })
   }
 })
 

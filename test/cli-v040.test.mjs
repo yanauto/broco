@@ -174,7 +174,14 @@ test('map fan-out handles shell-expanded file globs, brief files, batch show, ba
   assert.equal(dispatched.count, 3)
   assert.deepEqual(dispatched.shards.map(s => s.input), shardFiles)
 
-  const waited = await h.json('wait', 'x-tag')
+  let waited
+  try {
+    waited = await h.json('wait', 'x-tag')
+  } catch (err) {
+    const detail = await h.json('show', 'x-tag').catch(() => null)
+    const shards = detail?.shards?.map(s => s.name + ':' + s.status + (s.problem ? '(' + s.problem.class + ': ' + s.problem.message + ')' : '')).join(', ')
+    throw new Error(err.message + (shards ? ' [shards: ' + shards + ']' : ''), { cause: err })
+  }
   assert.equal(waited.isBatch, true)
   assert.equal(waited.finished, true)
   assert.equal(waited.counts.review, 3)
