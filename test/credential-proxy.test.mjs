@@ -21,7 +21,7 @@ async function upstream(t, handler) {
   const server = createServer(handler)
   server.listen(0, '127.0.0.1')
   await once(server, 'listening')
-  t.after(() => { server.closeAllConnections(); server.close() })
+  t.after(() => new Promise(resolve => { server.closeAllConnections(); server.close(() => resolve()) }))
   return 'http://127.0.0.1:' + server.address().port
 }
 
@@ -203,11 +203,11 @@ test('CLI receipts and runner files/logs exclude credentials; shutdown and crash
   }
   t.after(async () => {
     if (runner?.exitCode === null && runner?.signalCode === null) {
-      const exited = once(runner, 'exit')
+      const closed = once(runner, 'close')
       runner.kill('SIGKILL')
-      await exited
+      await closed
     }
-    rmSync(base, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 })
+    rmSync(base, { recursive: true, force: true, maxRetries: 20, retryDelay: 100 })
   })
   const cli = async (...args) => {
     const result = await exec(process.execPath, [join(repo, 'bin/broco'), ...args], { cwd: base, env: { ...env, BROCO_TEST_CREDENTIAL: secret }, timeout: 10000 })
@@ -234,14 +234,14 @@ test('CLI receipts and runner files/logs exclude credentials; shutdown and crash
     if (file.isFile()) assert.equal(readFileSync(join(file.parentPath, file.name)).includes(Buffer.from(secret)), false, file.name)
   }
   assert.equal(output.includes(secret), false)
-  const stopped = once(runner, 'exit')
+  const stopped = once(runner, 'close')
   await call('/shutdown', {}, socket)
   await stopped
   await assert.rejects(raw(commandReceipt.url, '/v1/models'))
   await start()
   assert.deepEqual(await cli('proxy-list', '--json'), [])
   const crashed = await cli(...args, '--value-env', 'BROCO_TEST_CREDENTIAL')
-  const killed = once(runner, 'exit')
+  const killed = once(runner, 'close')
   runner.kill('SIGKILL')
   await killed
   await assert.rejects(raw(crashed.url, '/v1/models'))

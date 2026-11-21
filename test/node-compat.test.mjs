@@ -143,13 +143,21 @@ test('detached runner emits zero SQLite ExperimentalWarning on stderr', async ()
   const dir = mkdtempSync(join(tmpdir(), 'broco-runner-warn-'))
   const env = { ...process.env, BROCO_HOME: join(dir, 'home') }
   const runnerPath = join(repo, 'lib', 'runner.mjs')
-  const child = spawn(process.execPath, [runnerPath], { cwd: dir, env, stdio: ['ignore', 'pipe', 'pipe'] })
+  const child = spawn(process.execPath, [runnerPath], { cwd: tmpdir(), env, stdio: ['ignore', 'pipe', 'pipe'] })
   let runnerStderr = ''
   child.stderr.on('data', chunk => { runnerStderr += chunk.toString('utf8') })
+  const waitClose = ms => new Promise(resolve => {
+    if (child.exitCode !== null || child.signalCode !== null) return resolve()
+    const timer = setTimeout(resolve, ms)
+    child.once('close', () => {
+      clearTimeout(timer)
+      resolve()
+    })
+  })
   try {
     let online = false
-    for (let i = 0; i < 40; i++) {
-      const res = await exec(process.execPath, [bin, 'status', '--json'], { cwd: dir, env, timeout: 10000 })
+    for (let i = 0; i < 80; i++) {
+      const res = await exec(process.execPath, [bin, 'status', '--json'], { cwd: tmpdir(), env, timeout: 10000 })
       assert.equal(res.stderr, '')
       if (JSON.parse(res.stdout.trim()).runner.online) {
         online = true
@@ -159,21 +167,18 @@ test('detached runner emits zero SQLite ExperimentalWarning on stderr', async ()
     }
     assert.equal(online, true)
 
-    const down = await exec(process.execPath, [bin, 'shutdown', '--json'], { cwd: dir, env, timeout: 10000 })
+    const down = await exec(process.execPath, [bin, 'shutdown', '--json'], { cwd: tmpdir(), env, timeout: 10000 })
     assert.equal(down.stderr, '')
     assert.equal(JSON.parse(down.stdout.trim()).status, 'offline')
 
-    await new Promise(resolve => {
-      if (child.exitCode !== null) return resolve()
-      child.once('exit', resolve)
-      setTimeout(resolve, 3000)
-    })
+    await waitClose(5000)
     assert.doesNotMatch(runnerStderr, /ExperimentalWarning/)
   } finally {
-    if (child.exitCode === null) {
+    if (child.exitCode === null && child.signalCode === null) {
       try { child.kill('SIGKILL') } catch {}
+      await waitClose(3000)
     }
-    rmSync(dir, { recursive: true, force: true })
+    rmSync(dir, { recursive: true, force: true, maxRetries: 20, retryDelay: 100 })
   }
 })
 
