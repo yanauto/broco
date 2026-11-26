@@ -1,8 +1,8 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/broco-readme-logo-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="assets/broco-readme-logo-light.png">
-    <img src="assets/broco-readme-logo-light.png" alt="broco — 不同 harness 里的 AI，一起干活。" width="520">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/yanauto/broco/main/assets/broco-readme-logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/yanauto/broco/main/assets/broco-readme-logo-light.png">
+    <img src="https://raw.githubusercontent.com/yanauto/broco/main/assets/broco-readme-logo-light.png" alt="broco — 不同 harness 里的 AI，一起干活。" width="520">
   </picture>
 </p>
 
